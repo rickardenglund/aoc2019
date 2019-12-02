@@ -12,7 +12,7 @@ func GetLines(path string) []string {
 	if err != nil {
 		abspath, absErr := filepath.Abs(path)
 		if absErr != nil {
-			log.Fatal("Failed to get absolute path from: %v\n", path)
+			log.Fatalf("Failed to get absolute path from: %s\n", path)
 		}
 		log.Printf("absolute path: %v\n", abspath)
 		log.Fatal(err)
