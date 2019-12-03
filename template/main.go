@@ -11,14 +11,9 @@ func main() {
 }
 
 func part1() int{
-	return algo(5)
+	return -1
 }
 
 func part2() int {
-	return algo(6)
-}
-
-func algo(n int) int {
-
 	return -1
 }
