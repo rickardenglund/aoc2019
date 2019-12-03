@@ -33,9 +33,6 @@ func part1() int{
 		}
 	}
 
-	//fmt.Printf("%v\n", intersections)
-	//fmt.Printf("%v\n", path1)
-	//fmt.Printf("%v\n", path2)
 	min := math.MaxInt32
 	for p := range intersections {
 		d := distance(p)
@@ -71,6 +68,35 @@ func walkpath(wireTurns []string, i int) *map[pos]bool{
 	return &path
 }
 
+func getWireDistance(wireTurns []string, i int, target pos) int{
+	turns := strings.Split(wireTurns[i], ",")
+	p := pos{0, 0}
+	d := 0
+	for i := range turns {
+		length, err := strconv.Atoi(turns[i][1:])
+		if err != nil {
+			log.Fatal("failed to parse")
+		}
+		direction := turns[i][0]
+		for i2 := 1; i2 <= length; i2++ {
+			switch direction {
+			case 'U' : p = pos{p.x, p.y+1}
+			case 'D' : p = pos{p.x, p.y-1}
+			case 'L' : p = pos{p.x - 1, p.y}
+			case 'R' : p = pos{p.x+ 1, p.y}
+			default:
+				log.Fatal("Unknown direction")
+			}
+			d++
+			if p == target {
+				return d
+			}
+		}
+	}
+	return -1
+}
+
+
 func walk(m *map[pos]bool, p pos, direction uint8, length int) pos {
 	var newPos pos
 	for i := 1; i <= length; i++ {
@@ -88,10 +114,25 @@ func walk(m *map[pos]bool, p pos, direction uint8, length int) pos {
 }
 
 func part2() int {
-	return algo(6)
-}
+	wireTurns := inputs.GetLines("day3/input.txt")
 
-func algo(n int) int {
+	path1 := walkpath(wireTurns, 0)
+	path2 := walkpath(wireTurns, 1)
 
-	return 2
+	intersections := make(map[pos]bool)
+	for p := range *path1 {
+		if (*path2)[p] {
+			intersections[p] = true
+		}
+	}
+
+	min := math.MaxInt32
+	for intersection := range intersections {
+		d := getWireDistance(wireTurns, 0, intersection) + getWireDistance(wireTurns, 1, intersection)
+		if d < min {
+			min = d
+		}
+	}
+
+	return min
 }
