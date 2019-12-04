@@ -6,20 +6,14 @@ import (
 )
 
 func Test_isValid(t *testing.T) {
-	assert.True(t, isValid(111111))
-	assert.False(t, isValid(223450))
-	assert.False(t, isValid(123789))
+	assert.True(t, isValid(111111, loose))
+	assert.False(t, isValid(223450, loose))
+	assert.False(t, isValid(123789, loose))
 }
 
 func Test_isValidStrict(t *testing.T) {
-	assert.True(t, isValidStrict(112233))
-	assert.False(t, isValidStrict(123444))
-	assert.True(t, isValidStrict(111122))
-	assert.False(t, isValidStrict(699922))
-}
-
-func Test_groupSize(t *testing.T) {
-	assert.Equal(t, 3, groupSize("111", 0))
-	assert.Equal(t, 1, groupSize("0111", 0))
-	assert.Equal(t, 2, groupSize("0111", 2))
+	assert.True(t, isValid(112233, strict))
+	assert.False(t, isValid(123444, strict))
+	assert.True(t, isValid(111122, strict))
+	assert.False(t, isValid(699922, strict))
 }
