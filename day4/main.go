@@ -42,7 +42,6 @@ func part2() int {
 	n := 0
 	for i := min; i <= max; i++ {
 		if isValidStrict(i) {
-			println(i)
 			n++
 		}
 	}
