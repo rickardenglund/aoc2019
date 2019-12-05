@@ -87,16 +87,12 @@ loop:
 	}
 }
 
-func (c *Computer) readParam(pos int) int {
-	return c.Mem[c.Mem[pos]]
-}
-
 func (c *Computer) getOpcode(pc int) int {
 	return c.Mem[pc] % 100
 }
 
 func (c *Computer) getParamValues(pc int, nParams int) (values []int) {
-	inParams := c.Mem[pc + 1: pc + 1 + nParams]
+	inParams := c.Mem[pc+1 : pc+1+nParams]
 	modeList := getModes(c.Mem[pc], nParams)
 
 	for i := 0; i < nParams; i++ {
