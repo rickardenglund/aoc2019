@@ -32,39 +32,39 @@ func (c *Computer) Run() {
 	pc := 0
 loop:
 	for {
-		opcode, _ := c.readInstruction(pc, nil)
+		opcode := c.getOpcode(pc)
 		switch opcode {
 		case 1: // add
-			_, params := c.readInstruction(pc, c.Mem[pc+1:pc+4])
+			params := c.getParamValues(pc, 2)
 			c.Mem[c.Mem[pc+3]] = params[0] + params[1]
 			pc += 4
 		case 2: // mul
-			_, params := c.readInstruction(pc, c.Mem[pc+1:pc+4])
+			params := c.getParamValues(pc, 2)
 			c.Mem[c.Mem[pc+3]] = params[0] * params[1]
 			pc += 4
 		case 3: // input
 			c.Mem[c.Mem[pc+1]] = c.input
 			pc += 2
 		case 4: // output
-			_, params := c.readInstruction(pc, c.Mem[pc+1:pc+2])
+			params := c.getParamValues(pc, 1)
 			c.Output = append(c.Output, params[0])
 			pc += 2
 		case 5: // jump if true
-			_, params := c.readInstruction(pc, c.Mem[pc+1:pc+3])
+			params := c.getParamValues(pc, 2)
 			if params[0] != 0 {
 				pc = params[1]
 			} else {
 				pc += 3
 			}
 		case 6: // jump if false
-			_, params := c.readInstruction(pc, c.Mem[pc+1:pc+3])
+			params := c.getParamValues(pc, 2)
 			if params[0] == 0 {
 				pc = params[1]
 			} else {
 				pc += 3
 			}
 		case 7: // less than
-			_, params := c.readInstruction(pc, c.Mem[pc+1:pc+4])
+			params := c.getParamValues(pc, 2)
 			if params[0] < params[1] {
 				c.Mem[c.Mem[pc+3]] = 1
 			} else {
@@ -72,7 +72,7 @@ loop:
 			}
 			pc += 4
 		case 8: // equal
-			_, params := c.readInstruction(pc, c.Mem[pc+1:pc+4])
+			params := c.getParamValues(pc, 2)
 			if params[0] == params[1] {
 				c.Mem[c.Mem[pc+3]] = 1
 			} else {
@@ -83,7 +83,6 @@ loop:
 			break loop
 		default:
 			log.Fatalf("Unknown opcode: %v pc: %v\n %v\n", opcode, pc, c.Mem)
-			//log.Fatalf("Unknown opcode: %v pc: %v\n %v\n", opcode, pc, c.Mem[240:245])
 		}
 	}
 }
@@ -92,48 +91,38 @@ func (c *Computer) readParam(pos int) int {
 	return c.Mem[c.Mem[pos]]
 }
 
-func (c *Computer) readInstruction(pc int, inParams []int) (opCode int, params []int) {
-	var modeList []int
-	var err error
-	str := strconv.Itoa(c.Mem[pc])
+func (c *Computer) getOpcode(pc int) int {
+	return c.Mem[pc] % 100
+}
 
-	if len(str) < 2 {
-		opCode, err = strconv.Atoi(str)
-		checkError(err)
-	} else {
+func (c *Computer) getParamValues(pc int, nParams int) (values []int) {
+	inParams := c.Mem[pc + 1: pc + 1 + nParams]
+	modeList := getModes(c.Mem[pc], nParams)
 
-		opCode, err = strconv.Atoi(str[len(str)-2:])
-		checkError(err)
-
-		for i := len(str) - 3; i >= 0; i-- {
-			mode := 0
-			if str[i] == '1' {
-				mode = 1
-			}
-			modeList = append(modeList, mode)
-		}
-	}
-
-	for i := 0; i < len(inParams); i++ {
+	for i := 0; i < nParams; i++ {
 		var val int
-		if i >= len(modeList) {
-			val = c.Mem[inParams[i]]
-		} else if modeList[i] == 1 {
+		if modeList[i] == 1 {
 			val = inParams[i]
 		} else if modeList[i] == 0 {
 			val = c.Mem[inParams[i]]
 		}
 
-		params = append(params, val)
+		values = append(values, val)
 	}
 
-	return opCode, params
+	return values
 }
 
-func checkError(err error) {
-	if err != nil {
-		log.Fatal(err)
+func getModes(op, nParams int) []int {
+	number := op / 100
+
+	modes := []int{number % 10}
+	var divisor = 10
+	for i := 0; i < nParams; i++ {
+		modes = append(modes, (number/divisor)%divisor)
+		divisor *= 10
 	}
+	return modes
 }
 
 func (c *Computer) SetInput(input int) {
@@ -142,5 +131,4 @@ func (c *Computer) SetInput(input int) {
 
 func (c *Computer) setMem(ints []int) {
 	c.Mem = ints
-
 }
