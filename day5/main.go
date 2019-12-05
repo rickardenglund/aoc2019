@@ -5,7 +5,6 @@ import (
 	"fmt"
 )
 
-
 func main() {
 	fmt.Printf("part1: %v\n", part1())
 	fmt.Printf("part1: %v\n", part2())
@@ -17,10 +16,13 @@ func part1() int{
 	c.ReadMemory("day5/input.txt")
 	c.SetInput(1)
 	c.Run()
-	fmt.Printf("output: %v\n", c.Output)
 	return c.Output[len(c.Output)-1]
 }
 
 func part2() int {
-	return -1
+	c := computer.Computer{}
+	c.ReadMemory("day5/input.txt")
+	c.SetInput(5)
+	c.Run()
+	return c.Output[len(c.Output)-1]
 }

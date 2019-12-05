@@ -14,7 +14,7 @@ type Computer struct {
 	Output []int
 }
 
-func (c *Computer) ReadMemory(path string){
+func (c *Computer) ReadMemory(path string) {
 	lines := inputs.GetLines(path)
 	ints := strings.Split(lines[0], ",")
 	var memory []int = make([]int, len(ints))
@@ -30,7 +30,8 @@ func (c *Computer) ReadMemory(path string){
 
 func (c *Computer) Run() {
 	pc := 0
-	for c.Mem[pc] != 99 {
+loop:
+	for {
 		opcode, _ := c.readInstruction(pc, nil)
 		switch opcode {
 		case 1: // add
@@ -41,19 +42,48 @@ func (c *Computer) Run() {
 			_, params := c.readInstruction(pc, c.Mem[pc+1:pc+4])
 			c.Mem[c.Mem[pc+3]] = params[0] * params[1]
 			pc += 4
-		case 3: // read
+		case 3: // input
 			c.Mem[c.Mem[pc+1]] = c.input
 			pc += 2
-		case 4: // write
+		case 4: // output
 			_, params := c.readInstruction(pc, c.Mem[pc+1:pc+2])
-			c.Mem[c.Mem[pc+1]] = c.input
-			if params[0] != 0 {
-				log.Fatalf("pc: %v, %v", pc, params[0])
-			}
 			c.Output = append(c.Output, params[0])
-			pc+=2
+			pc += 2
+		case 5: // jump if true
+			_, params := c.readInstruction(pc, c.Mem[pc+1:pc+3])
+			if params[0] != 0 {
+				pc = params[1]
+			} else {
+				pc += 3
+			}
+		case 6: // jump if false
+			_, params := c.readInstruction(pc, c.Mem[pc+1:pc+3])
+			if params[0] == 0 {
+				pc = params[1]
+			} else {
+				pc += 3
+			}
+		case 7: // less than
+			_, params := c.readInstruction(pc, c.Mem[pc+1:pc+4])
+			if params[0] < params[1] {
+				c.Mem[c.Mem[pc+3]] = 1
+			} else {
+				c.Mem[c.Mem[pc+3]] = 0
+			}
+			pc += 4
+		case 8: // equal
+			_, params := c.readInstruction(pc, c.Mem[pc+1:pc+4])
+			if params[0] == params[1] {
+				c.Mem[c.Mem[pc+3]] = 1
+			} else {
+				c.Mem[c.Mem[pc+3]] = 0
+			}
+			pc += 4
+		case 99:
+			break loop
 		default:
 			log.Fatalf("Unknown opcode: %v pc: %v\n %v\n", opcode, pc, c.Mem)
+			//log.Fatalf("Unknown opcode: %v pc: %v\n %v\n", opcode, pc, c.Mem[240:245])
 		}
 	}
 }
@@ -86,7 +116,7 @@ func (c *Computer) readInstruction(pc int, inParams []int) (opCode int, params [
 
 	for i := 0; i < len(inParams); i++ {
 		var val int
-		if i >=len(modeList) {
+		if i >= len(modeList) {
 			val = c.Mem[inParams[i]]
 		} else if modeList[i] == 1 {
 			val = inParams[i]

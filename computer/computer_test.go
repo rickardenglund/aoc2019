@@ -40,3 +40,12 @@ func TestComputer_Run3(t *testing.T) {
 	c.Run()
 	assert.Equal(t, []int{1002, 4, 2, 5, 99, 198}, c.Mem)
 }
+
+func TestEqual(t *testing.T) {
+	c := Computer{
+		Mem: []int{3,9,8,9,10,9,4,9,99,-1,8},
+		input: 2,
+	}
+	c.Run()
+	assert.Equal(t, []int{0}, c.Output)
+}
