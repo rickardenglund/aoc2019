@@ -13,22 +13,24 @@ func main() {
 
 
 func part1() int{
-	memory := computer.ReadMemory("day2/input.txt")
+	c := computer.Computer{}
+	c.ReadMemory("day2/input.txt")
 
-	memory[1] = 12
-	memory[2] = 2
-	result := computer.Run(memory)
-	return result[0]
+	c.Mem[1] = 12
+	c.Mem[2] = 2
+	c.Run()
+	return c.Mem[0]
 }
 
 func part2() int {
 	for noun := 0; noun < 100; noun++ {
 		for verb := 0; verb< 100; verb++ {
-			program := computer.ReadMemory("day2/input.txt")
-			program[1] = noun
-			program[2] = verb
-			res := computer.Run(program)
-			if res[0] == 19690720 {
+			c := computer.Computer{}
+			c.ReadMemory("day2/input.txt")
+			c.Mem[1] = noun
+			c.Mem[2] = verb
+			c.Run()
+			if c.Mem[0] == 19690720 {
 				return 100 * noun + verb
 			}
 		}

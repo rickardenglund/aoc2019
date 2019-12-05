@@ -18,7 +18,7 @@ func part1() int{
 	c.SetInput(1)
 	c.Run()
 	fmt.Printf("output: %v\n", c.Output)
-	return -1
+	return c.Output[len(c.Output)-1]
 }
 
 func part2() int {

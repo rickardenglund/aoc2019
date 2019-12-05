@@ -1,15 +1,16 @@
 package computer
 
 import (
-	"aoc2019/inputs"
 	"log"
 	"strconv"
 	"strings"
+
+	"aoc2019/inputs"
 )
 
 type Computer struct {
 	input  int
-	mem    []int
+	Mem    []int
 	Output []int
 }
 
@@ -24,44 +25,47 @@ func (c *Computer) ReadMemory(path string){
 		}
 		memory[i] = n
 	}
-	c.mem = memory
+	c.Mem = memory
 }
 
 func (c *Computer) Run() {
 	pc := 0
-	for c.mem[pc] != 99 {
+	for c.Mem[pc] != 99 {
 		opcode, _ := c.readInstruction(pc, nil)
 		switch opcode {
 		case 1: // add
-			_, params := c.readInstruction(pc, c.mem[pc+1:pc+4])
-			c.mem[c.mem[pc+3]] = params[0] + params[1]
+			_, params := c.readInstruction(pc, c.Mem[pc+1:pc+4])
+			c.Mem[c.Mem[pc+3]] = params[0] + params[1]
 			pc += 4
 		case 2: // mul
-			_, params := c.readInstruction(pc, c.mem[pc+1:pc+4])
-			c.mem[c.mem[pc+3]] = params[0] * params[1]
+			_, params := c.readInstruction(pc, c.Mem[pc+1:pc+4])
+			c.Mem[c.Mem[pc+3]] = params[0] * params[1]
 			pc += 4
 		case 3: // read
-			c.mem[c.mem[pc+1]] = c.input
+			c.Mem[c.Mem[pc+1]] = c.input
 			pc += 2
 		case 4: // write
-			_, params := c.readInstruction(pc, c.mem[pc+1:pc+2])
-			c.mem[c.mem[pc+1]] = c.input
+			_, params := c.readInstruction(pc, c.Mem[pc+1:pc+2])
+			c.Mem[c.Mem[pc+1]] = c.input
+			if params[0] != 0 {
+				log.Fatalf("pc: %v, %v", pc, params[0])
+			}
 			c.Output = append(c.Output, params[0])
 			pc+=2
 		default:
-			log.Fatalf("Unknown opcode: %v pc: %v\n", opcode, pc)
+			log.Fatalf("Unknown opcode: %v pc: %v\n %v\n", opcode, pc, c.Mem)
 		}
 	}
 }
 
 func (c *Computer) readParam(pos int) int {
-	return c.mem[c.mem[pos]]
+	return c.Mem[c.Mem[pos]]
 }
 
 func (c *Computer) readInstruction(pc int, inParams []int) (opCode int, params []int) {
 	var modeList []int
 	var err error
-	str := strconv.Itoa(c.mem[pc])
+	str := strconv.Itoa(c.Mem[pc])
 
 	if len(str) < 2 {
 		opCode, err = strconv.Atoi(str)
@@ -83,11 +87,11 @@ func (c *Computer) readInstruction(pc int, inParams []int) (opCode int, params [
 	for i := 0; i < len(inParams); i++ {
 		var val int
 		if i >=len(modeList) {
-			val = c.mem[inParams[i]]
+			val = c.Mem[inParams[i]]
 		} else if modeList[i] == 1 {
 			val = inParams[i]
 		} else if modeList[i] == 0 {
-			val = c.mem[inParams[i]]
+			val = c.Mem[inParams[i]]
 		}
 
 		params = append(params, val)
@@ -107,6 +111,6 @@ func (c *Computer) SetInput(input int) {
 }
 
 func (c *Computer) setMem(ints []int) {
-	c.mem = ints
+	c.Mem = ints
 
 }
