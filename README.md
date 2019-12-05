@@ -1,0 +1,1 @@
+# Advent of code 2019 ![](https://github.com/rickardenglund/aoc2019/workflows/Go/badge.svg)
