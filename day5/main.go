@@ -3,11 +3,18 @@ package main
 import (
 	"aoc2019/computer"
 	"fmt"
+	"time"
 )
 
 func main() {
-	fmt.Printf("part1: %v\n", part1())
-	fmt.Printf("part1: %v\n", part2())
+	start := time.Now()
+	p1 := part1()
+	timeP1 := time.Now().Sub(start)
+	fmt.Printf("part1: %v in %v\n", p1, timeP1)
+	start2 := time.Now()
+	p2 := part2()
+	timeP2 := time.Now().Sub(start2)
+	fmt.Printf("part2: %v in %v\n", p2, timeP2)
 }
 
 func part1() int{
