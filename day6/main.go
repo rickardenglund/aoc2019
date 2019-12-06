@@ -26,9 +26,16 @@ func part1() int {
 	return getAllConnections(&tree)
 }
 
+func part2() int {
+	lines := inputs.GetLines("day6/input.txt")
+	tree := createTree(lines)
+
+	return getDistance("YOU", "SAN", &tree)
+}
+
 func getDistance(s string, s2 string, tree *map[string]string) int {
 	ancestor := getCommonAncestor(s, s2, tree)
-	return getD((*tree)[s], ancestor, tree) + getD((*tree)[s2], ancestor, tree)
+	return getParentDistance((*tree)[s], ancestor, tree) + getParentDistance((*tree)[s2], ancestor, tree)
 }
 
 func getCommonAncestor(s string, s2 string, tree *map[string]string) string {
@@ -70,10 +77,10 @@ func createTree(lines []string) map[string]string {
 }
 
 func getNParents(name string, tree *map[string]string) int {
-	return getD(name, rootNode, tree)
+	return getParentDistance(name, rootNode, tree)
 }
 
-func getD(parent, root string, tree *map[string]string) int {
+func getParentDistance(parent, root string, tree *map[string]string) int {
 	parents := getParents(parent, root, tree)
 	return len(strings.Split(parents, ",")) - 1
 }
@@ -84,11 +91,4 @@ func getParents(parent, root string, tree *map[string]string) string {
 	}
 
 	return parent + "," + getParents((*tree)[parent], root, tree)
-}
-
-func part2() int {
-	lines := inputs.GetLines("day6/input.txt")
-	tree := createTree(lines)
-
-	return getDistance("YOU", "SAN", &tree)
 }
