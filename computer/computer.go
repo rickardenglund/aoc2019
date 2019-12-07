@@ -1,19 +1,22 @@
 package computer
 
 import (
+	"fmt"
 	"log"
-	"runtime/debug"
 	"strconv"
 	"strings"
+	"sync"
 
 	"aoc2019/inputs"
 )
 
 type Computer struct {
-	input        []int
-	currentInput int
-	Mem          []int
-	Output       []int
+	Mem        []int
+	Input      chan Msg
+	Output     chan Msg
+	outputs    []int
+	name       string
+	LogChannel *chan string
 }
 
 func (c *Computer) ReadMemory(path string) {
@@ -30,6 +33,12 @@ func (c *Computer) ReadMemory(path string) {
 	c.Mem = memory
 }
 
+func (c *Computer) RunWithWaithGroup(wg *sync.WaitGroup) {
+	defer wg.Done()
+	c.Run()
+	c.log("Halting")
+}
+
 func (c *Computer) Run() {
 	pc := 0
 loop:
@@ -44,14 +53,17 @@ loop:
 			params := c.getParamValues(pc, 2)
 			c.Mem[c.Mem[pc+3]] = params[0] * params[1]
 			pc += 4
-		case 3: // input
-			val := c.currentInput
-			c.currentInput++
-			c.Mem[c.Mem[pc+1]] = c.input[val]
+		case 3: // Input
+			c.log(fmt.Sprintf("reading input"))
+			msg := <-c.Input
+			c.Mem[c.Mem[pc+1]] = msg.Data
+			c.log(fmt.Sprintf("got: %v from %v", msg.Data, msg.Sender))
 			pc += 2
-		case 4: // output
+		case 4: // Output
 			params := c.getParamValues(pc, 1)
-			c.Output = append(c.Output, params[0])
+			c.outputs = append(c.outputs, params[0])
+			c.log(fmt.Sprintf("outputs: %v", params[0]))
+			c.trySend(params[0])
 			pc += 2
 		case 5: // jump if true
 			params := c.getParamValues(pc, 2)
@@ -84,10 +96,27 @@ loop:
 			}
 			pc += 4
 		case 99:
+			close(c.Input)
+			c.log("Stop")
 			break loop
 		default:
 			log.Fatalf("Unknown opcode: %v pc: %v\n %v\n", opcode, pc, c.Mem)
 		}
+	}
+}
+
+func (c *Computer) trySend(data int) {
+	defer func() {
+		recover()
+	}()
+
+	msg := Msg{c.name, data}
+	c.Output <- msg
+}
+
+func (c *Computer) log(msg string) {
+	if c.LogChannel != nil {
+		*c.LogChannel <- fmt.Sprintf("%s : %s", c.name, msg)
 	}
 }
 
@@ -125,8 +154,27 @@ func getModes(op, nParams int) []int {
 	return modes
 }
 
-func (c *Computer) SetInput(input []int) {
-	c.input = input
+type Msg struct {
+	Sender string
+	Data   int
+}
+
+func NewComputerWithName(name string, mem []int) Computer {
+	memCopy := make([]int, len(mem))
+	for i := range mem {
+		memCopy[i] = mem[i]
+	}
+
+	return Computer{
+		Mem:    memCopy,
+		Input:  make(chan Msg),
+		Output: make(chan Msg),
+		name:   name,
+	}
+}
+
+func NewComputer(mem []int) Computer {
+	return NewComputerWithName("Name", mem)
 }
 
 func (c *Computer) setMem(ints []int) {
@@ -134,10 +182,11 @@ func (c *Computer) setMem(ints []int) {
 }
 
 func (c *Computer) GetLastOutput() int {
-	l := len(c.Output)
-	if l == 0 {
-		debug.PrintStack()
-		log.Fatal("No output available")
-	}
-	return c.Output[len(c.Output)-1]
+	return c.outputs[len(c.outputs)-1]
+}
+
+func ReadMemory(path string) []int {
+	c := Computer{}
+	c.ReadMemory(path)
+	return c.Mem
 }
