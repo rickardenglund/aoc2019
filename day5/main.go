@@ -3,6 +3,7 @@ package main
 import (
 	"aoc2019/computer"
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -18,17 +19,30 @@ func main() {
 }
 
 func part1() int {
-	c := computer.Computer{}
-	c.ReadMemory("day5/input.txt")
-	c.SetInput([]int{1})
-	c.Run()
-	return c.Output[len(c.Output)-1]
+	return do(1)
 }
 
 func part2() int {
-	c := computer.Computer{}
-	c.ReadMemory("day5/input.txt")
-	c.SetInput([]int{5})
-	c.Run()
-	return c.Output[len(c.Output)-1]
+	return do(5)
+}
+
+func do(in int) int {
+	c := computer.NewComputer(computer.ReadMemory("day5/input.txt"))
+	close(c.Output)
+
+	go func() {
+		defer func() {
+			recover() //nolint:errcheck
+		}()
+		for {
+			c.Input <- computer.Msg{Sender: "p1", Data: in}
+		}
+	}()
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go c.RunWithWaithGroup(&wg)
+	wg.Wait()
+
+	return c.GetLastOutput()
 }

@@ -1,53 +1,45 @@
 package computer
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestComputer_Run(t *testing.T) {
-	c := Computer{Input: []int{0}}
-	c.setMem([]int{3, 0, 4, 0, 99})
-	c.Run()
-	assert.Equal(t, []int{0}, c.Output)
-}
-
-func TestComputer_Run2(t *testing.T) {
-	c := Computer{}
-	c.setMem([]int{101003, 0, 4, 0, 99})
-	//instruction, params := c.getParamValues(0, c.Mem[1:2])
-	//fmt.Printf("op: %v params: %v\n", instruction, params)
+	c := NewComputer([]int{3, 0, 4, 0, 99})
+	go c.Run()
+	c.Input <- Msg{"", 2}
+	assert.Equal(t, 2, (<-c.Output).Data)
 }
 
 func TestComputer_Run5(t *testing.T) {
 	c := Computer{}
 	c.setMem([]int{1003, 0, 4, 0, 99})
-	//instruction, params := c.getParamValues(0, c.Mem[1:4])
-	//fmt.Printf("op: %v params: %v\n", instruction, params)
+	values := c.getParamValues(0, 3)
+	assert.Equal(t, []int{1003, 4, 1003}, values)
 }
 
 func TestComputer_Run4(t *testing.T) {
-	c := Computer{}
-	c.setMem([]int{101, 1, 6, 7, 4, 7, 99, 0})
-	c.Run()
-	fmt.Printf("Output %v\n", c.Output)
+	c := NewComputer([]int{101, 1, 6, 7, 4, 7, 99, 0})
+	go c.Run()
+	res := <-c.Output
+	<-c.Input
+	assert.Equal(t, 100, res.Data)
 }
 
 func TestComputer_Run3(t *testing.T) {
-	c := Computer{}
-	c.setMem([]int{1002, 4, 2, 5, 99, 0})
-	c.Run()
+	c := NewComputer([]int{1002, 4, 2, 5, 99, 0})
+	go c.Run()
+	<-c.Input // wait for termination
 	assert.Equal(t, []int{1002, 4, 2, 5, 99, 198}, c.Mem)
 }
 
 func TestEqual(t *testing.T) {
-	c := Computer{
-		Mem:   []int{3, 9, 8, 9, 10, 9, 4, 9, 99, -1, 8},
-		Input: []int{2},
-	}
-	c.Run()
-	assert.Equal(t, []int{0}, c.Output)
+	c := NewComputer([]int{3, 9, 8, 9, 10, 9, 4, 9, 99, -1, 8})
+
+	go c.Run()
+	c.Input <- Msg{"test", 2}
+	assert.Equal(t, []int{0}, c.outputs)
 }
 
 func TestGetParams(t *testing.T) {

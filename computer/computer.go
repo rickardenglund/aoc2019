@@ -107,7 +107,7 @@ loop:
 
 func (c *Computer) trySend(data int) {
 	defer func() {
-		recover()
+		recover() // nolint: errcheck
 	}()
 
 	msg := Msg{c.name, data}
@@ -161,9 +161,8 @@ type Msg struct {
 
 func NewComputerWithName(name string, mem []int) Computer {
 	memCopy := make([]int, len(mem))
-	for i := range mem {
-		memCopy[i] = mem[i]
-	}
+
+	copy(memCopy, mem)
 
 	return Computer{
 		Mem:    memCopy,
