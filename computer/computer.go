@@ -111,7 +111,9 @@ func (c *Computer) trySend(data int) {
 	}()
 
 	msg := Msg{c.name, data}
-	c.Output <- msg
+	if c.Output != nil {
+		c.Output <- msg
+	}
 }
 
 func (c *Computer) log(msg string) {
@@ -165,10 +167,10 @@ func NewComputerWithName(name string, mem []int) Computer {
 	copy(memCopy, mem)
 
 	return Computer{
-		Mem:    memCopy,
-		Input:  make(chan Msg),
-		Output: make(chan Msg),
-		name:   name,
+		Mem:   memCopy,
+		Input: make(chan Msg),
+		//Output: make(chan Msg),
+		name: name,
 	}
 }
 

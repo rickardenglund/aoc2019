@@ -7,12 +7,16 @@ import (
 
 func TestComputer_Run(t *testing.T) {
 	c := NewComputer([]int{3, 0, 4, 0, 99})
-	go c.Run()
-	c.Input <- Msg{"", 2}
-	assert.Equal(t, 2, (<-c.Output).Data)
+	c.Output = nil
+	go func() {
+		c.Input <- Msg{"", 2}
+	}()
+
+	c.Run()
+	assert.Equal(t, 2, c.GetLastOutput())
 }
 
-func TestComputer_Run5(t *testing.T) {
+func TestComputer_GetParamValues(t *testing.T) {
 	c := Computer{}
 	c.setMem([]int{1003, 0, 4, 0, 99})
 	values := c.getParamValues(0, 3)
@@ -21,16 +25,17 @@ func TestComputer_Run5(t *testing.T) {
 
 func TestComputer_Run4(t *testing.T) {
 	c := NewComputer([]int{101, 1, 6, 7, 4, 7, 99, 0})
+	c.Output = make(chan Msg)
+
 	go c.Run()
 	res := <-c.Output
-	<-c.Input
 	assert.Equal(t, 100, res.Data)
 }
 
 func TestComputer_Run3(t *testing.T) {
 	c := NewComputer([]int{1002, 4, 2, 5, 99, 0})
-	go c.Run()
-	<-c.Input // wait for termination
+
+	c.Run()
 	assert.Equal(t, []int{1002, 4, 2, 5, 99, 198}, c.Mem)
 }
 

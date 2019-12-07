@@ -87,6 +87,12 @@ func CalcSignalFeedback(seq, mem []int) int {
 		}
 	}()
 
+	computerA.Output = make(chan computer.Msg)
+	computerB.Output = make(chan computer.Msg)
+	computerC.Output = make(chan computer.Msg)
+	computerD.Output = make(chan computer.Msg)
+	computerE.Output = make(chan computer.Msg)
+
 	input := computerE.Output
 	computerA.Input = computerE.Output
 	computerB.Input = computerA.Output
@@ -135,6 +141,7 @@ func CalcSignal(sequence []int, mem []int) int {
 	previousValue := 0
 	for i := range sequence {
 		c := computer.NewComputer(mem)
+		c.Output = make(chan computer.Msg)
 		go c.Run()
 		c.Input <- computer.Msg{Sender: "Main", Data: sequence[i]}
 		c.Input <- computer.Msg{Sender: "Main", Data: previousValue}

@@ -50,3 +50,15 @@ func Test_run4(t *testing.T) {
 	wg.Wait()
 	assert.Equal(t, []int{30, 1, 1, 4, 2, 5, 6, 0, 99}, c.Mem)
 }
+
+func Test_NoRoutines(t *testing.T) {
+	c := NewComputer([]int{1101, 1, 1, 5, 99, 0})
+	c.Run()
+	assert.Equal(t, 2, c.Mem[5])
+}
+
+func Test_NoRoutineOutput(t *testing.T) {
+	c := NewComputer([]int{1101, 1, 1, 7, 4, 7, 99, 0})
+	c.Run()
+	assert.Equal(t, 2, c.Mem[7])
+}
