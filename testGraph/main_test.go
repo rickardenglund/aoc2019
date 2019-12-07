@@ -32,7 +32,7 @@ func Test_bepa(t *testing.T) {
 	}
 
 	//g = append(g, 4 : []graph.Half{})
-	_, dist := g.DijkstraPath(3, 1, weight)
+	_, dist := g.DijkstraPath(1, 3, weight)
 	assert.Equal(t, float64(2), dist)
 }
 
