@@ -2,6 +2,7 @@ package computer
 
 import (
 	"log"
+	"runtime/debug"
 	"strconv"
 	"strings"
 
@@ -9,9 +10,10 @@ import (
 )
 
 type Computer struct {
-	input  int
-	Mem    []int
-	Output []int
+	input        []int
+	currentInput int
+	Mem          []int
+	Output       []int
 }
 
 func (c *Computer) ReadMemory(path string) {
@@ -43,7 +45,9 @@ loop:
 			c.Mem[c.Mem[pc+3]] = params[0] * params[1]
 			pc += 4
 		case 3: // input
-			c.Mem[c.Mem[pc+1]] = c.input
+			val := c.currentInput
+			c.currentInput++
+			c.Mem[c.Mem[pc+1]] = c.input[val]
 			pc += 2
 		case 4: // output
 			params := c.getParamValues(pc, 1)
@@ -121,10 +125,19 @@ func getModes(op, nParams int) []int {
 	return modes
 }
 
-func (c *Computer) SetInput(input int) {
+func (c *Computer) SetInput(input []int) {
 	c.input = input
 }
 
 func (c *Computer) setMem(ints []int) {
 	c.Mem = ints
+}
+
+func (c *Computer) GetLastOutput() int {
+	l := len(c.Output)
+	if l == 0 {
+		debug.PrintStack()
+		log.Fatal("No output available")
+	}
+	return c.Output[len(c.Output)-1]
 }

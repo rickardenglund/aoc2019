@@ -9,18 +9,18 @@ import (
 func main() {
 	start := time.Now()
 	p1 := part1()
-	timeP1 := time.Now().Sub(start)
+	timeP1 := time.Since(start)
 	fmt.Printf("part1: %v in %v\n", p1, timeP1)
 	start2 := time.Now()
 	p2 := part2()
-	timeP2 := time.Now().Sub(start2)
+	timeP2 := time.Since(start2)
 	fmt.Printf("part2: %v in %v\n", p2, timeP2)
 }
 
-func part1() int{
+func part1() int {
 	c := computer.Computer{}
 	c.ReadMemory("day5/input.txt")
-	c.SetInput(1)
+	c.SetInput([]int{1})
 	c.Run()
 	return c.Output[len(c.Output)-1]
 }
@@ -28,7 +28,7 @@ func part1() int{
 func part2() int {
 	c := computer.Computer{}
 	c.ReadMemory("day5/input.txt")
-	c.SetInput(5)
+	c.SetInput([]int{5})
 	c.Run()
 	return c.Output[len(c.Output)-1]
 }
