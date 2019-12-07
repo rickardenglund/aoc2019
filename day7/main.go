@@ -64,65 +64,47 @@ func part2() int {
 	return max
 }
 
-func CalcSignalFeedback(seq, mem []int) int {
-	computerA := computer.NewComputerWithName("A", mem)
-	computerB := computer.NewComputerWithName("B", mem)
-	computerC := computer.NewComputerWithName("C", mem)
-	computerD := computer.NewComputerWithName("D", mem)
-	computerE := computer.NewComputerWithName("E", mem)
-
-	logCh := make(chan string)
-	computerA.LogChannel = &logCh
-	computerB.LogChannel = &logCh
-	computerC.LogChannel = &logCh
-	computerD.LogChannel = &logCh
-	computerE.LogChannel = &logCh
-
-	go func() {
-		for {
-			msg := <-logCh
-			if false {
-				println(msg)
-			}
+func logTask(logCh chan string) {
+	for {
+		msg := <-logCh
+		if false {
+			println(msg)
 		}
-	}()
+	}
+}
 
-	computerA.Output = make(chan computer.Msg)
-	computerB.Output = make(chan computer.Msg)
-	computerC.Output = make(chan computer.Msg)
-	computerD.Output = make(chan computer.Msg)
-	computerE.Output = make(chan computer.Msg)
+func CalcSignalFeedback(seq, mem []int) int {
+	const N = 5
+	var computers = make([]computer.Computer, N)
+	logCh := make(chan string)
+	for i := 0; i < N; i++ {
+		computers[i] = computer.NewComputerWithName(string('A'+i), mem)
+		computers[i].LogChannel = &logCh
+		computers[i].Output = make(chan computer.Msg)
+	}
 
-	input := computerE.Output
-	computerA.Input = computerE.Output
-	computerB.Input = computerA.Output
-	computerC.Input = computerB.Output
-	computerD.Input = computerC.Output
-	computerE.Input = computerD.Output
+	go logTask(logCh)
+
+	for i := 0; i < N; i++ {
+		j := (i + 1) % N
+		computers[j].Input = computers[i].Output
+	}
 
 	var wg sync.WaitGroup
-	wg.Add(5)
+	wg.Add(N)
 
-	go computerA.RunWithWaithGroup(&wg)
-	go computerB.RunWithWaithGroup(&wg)
-	go computerC.RunWithWaithGroup(&wg)
-	go computerD.RunWithWaithGroup(&wg)
-	go computerE.RunWithWaithGroup(&wg)
+	for i := 0; i < N; i++ {
+		go computers[i].RunWithWaithGroup(&wg)
+		computers[i].Input <- computer.Msg{Sender: "Init", Data: seq[i]}
+	}
 
-	computerA.Input <- computer.Msg{Sender: "Init", Data: seq[0]}
-	computerB.Input <- computer.Msg{Sender: "Init", Data: seq[1]}
-	computerC.Input <- computer.Msg{Sender: "Init", Data: seq[2]}
-	computerD.Input <- computer.Msg{Sender: "Init", Data: seq[3]}
-	computerE.Input <- computer.Msg{Sender: "Init", Data: seq[4]}
-
-	//println("######### after init")
-	input <- computer.Msg{
+	computers[0].Input <- computer.Msg{
 		Sender: "Init",
 		Data:   0,
 	}
 
 	wg.Wait()
-	return computerE.GetLastOutput()
+	return computers[N-1].GetLastOutput()
 
 }
 
