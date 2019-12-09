@@ -41,7 +41,7 @@ func Test_computerRead(t *testing.T) {
 	c := computer.NewComputer(program)
 
 	go c.Run()
-	c.Input <- computer.Msg{"", 55}
+	c.Input <- computer.Msg{Data: 55}
 
 	assert.Equal(t, 55, c.Mem[50])
 }

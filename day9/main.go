@@ -17,40 +17,28 @@ func main() {
 
 func part1() int {
 	c := computer.NewComputerWithName("Day9", computer.ReadMemory("day9/input.txt"))
-
-	out := make(chan computer.Msg)
-	c.Output = out
-	logCh := make(chan string)
-	c.LogChannel = &logCh
+	c.Output = make(chan computer.Msg)
 
 	go c.Run()
 
-	go func() {
-		for {
-			log, more := <-logCh
-			if more {
-				fmt.Printf("Log: %v\n", log)
-			} else {
-				break
-			}
-		}
-	}()
 	c.Input <- computer.Msg{
-		Sender: "P1",
+		Sender: "P2",
 		Data:   1,
 	}
-	for {
-		out, more := <-out
-		if !more {
-			break
-		}
-		fmt.Printf("%v\n", out)
-	}
 
-	return c.GetLastOutput()
-
+	return (<-c.Output).Data
 }
 
 func part2() int {
-	return -1
+	c := computer.NewComputerWithName("Day9", computer.ReadMemory("day9/input.txt"))
+	c.Output = make(chan computer.Msg)
+
+	go c.Run()
+
+	c.Input <- computer.Msg{
+		Sender: "P2",
+		Data:   2,
+	}
+
+	return (<-c.Output).Data
 }

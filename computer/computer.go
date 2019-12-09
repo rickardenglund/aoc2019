@@ -41,7 +41,7 @@ func (c *Computer) RunWithWaithGroup(wg *sync.WaitGroup) {
 }
 
 func (c *Computer) Run() {
-	names := map[int]string{
+	_ = map[int]string{
 		1: "add",
 		2: "mul",
 		3: "read",
@@ -57,7 +57,7 @@ func (c *Computer) Run() {
 loop:
 	for {
 		opcode := c.getOpcode(pc)
-		c.log(fmt.Sprintf("pc: %v, %v: %v", pc, names[opcode], c.Mem[pc:pc+5]))
+		//c.log(fmt.Sprintf("pc: %v, %v: %v", pc, names[opcode], c.Mem[pc:pc+5]))
 		switch opcode {
 		case 1: // add
 			params := c.getParamValues(pc, 2)
