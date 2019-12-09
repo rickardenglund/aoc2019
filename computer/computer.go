@@ -200,7 +200,7 @@ type Msg struct {
 }
 
 func NewComputerWithName(name string, mem []int) Computer {
-	memCopy := make([]int, 1024*10)
+	memCopy := make([]int, len(mem))
 
 	copy(memCopy, mem)
 
@@ -218,6 +218,10 @@ func NewComputer(mem []int) Computer {
 
 func (c *Computer) setMem(ints []int) {
 	c.Mem = ints
+}
+
+func (c *Computer) IncreaseMemory(size int) {
+	c.Mem = append(c.Mem, make([]int, size)...)
 }
 
 func (c *Computer) GetLastOutput() int {

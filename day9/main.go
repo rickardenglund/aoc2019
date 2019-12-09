@@ -9,15 +9,16 @@ import (
 func main() {
 	start := time.Now()
 	p1 := part1()
-	fmt.Printf("part1: %v in %v\n", p1, time.Since(start))
+	fmt.Printf("part1: %-10v in %v\n", p1, time.Since(start))
 	start2 := time.Now()
 	p2 := part2()
-	fmt.Printf("part2: %v in %v\n", p2, time.Since(start2))
+	fmt.Printf("part2: %-10v in %v\n", p2, time.Since(start2))
 }
 
 func part1() int {
 	c := computer.NewComputerWithName("Day9", computer.ReadMemory("day9/input.txt"))
 	c.Output = make(chan computer.Msg)
+	c.IncreaseMemory(1024)
 
 	go c.Run()
 
@@ -32,6 +33,7 @@ func part1() int {
 func part2() int {
 	c := computer.NewComputerWithName("Day9", computer.ReadMemory("day9/input.txt"))
 	c.Output = make(chan computer.Msg)
+	c.IncreaseMemory(1024)
 
 	go c.Run()
 

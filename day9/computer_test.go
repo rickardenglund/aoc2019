@@ -12,6 +12,7 @@ import (
 func Test_computerPrintItself(t *testing.T) {
 	program := []int{109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99}
 	c := computer.NewComputer(program)
+	c.IncreaseMemory(1024)
 
 	c.Run()
 	assert.Equal(t, program, c.Outputs)
@@ -37,11 +38,12 @@ func Test_computerOutputLargeNum2(t *testing.T) {
 }
 
 func Test_computerRead(t *testing.T) {
-	program := []int{9, 50, 203, 0, 99}
+	program := []int{109, 50, 203, 0, 99}
 	c := computer.NewComputer(program)
+	c.IncreaseMemory(1024)
 
-	go c.Run()
-	c.Input <- computer.Msg{Data: 55}
+	go func() { c.Input <- computer.Msg{Data: 55} }()
+	c.Run()
 
 	assert.Equal(t, 55, c.Mem[50])
 }
@@ -49,6 +51,7 @@ func Test_computerRead(t *testing.T) {
 func Test_computerAdj(t *testing.T) {
 	program := []int{109, 5, 9, 1, 209, -7, 2101, 1, 0, 50, 99, 8}
 	c := computer.NewComputer(program)
+	c.IncreaseMemory(1024)
 
 	c.Run()
 

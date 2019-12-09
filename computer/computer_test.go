@@ -49,7 +49,7 @@ func TestEqual(t *testing.T) {
 
 func TestGetParams(t *testing.T) {
 	n := 12302
-	assert.Equal(t, []int{3, 2, 1, 0}, getModes(n, 3))
+	assert.Equal(t, []int{3, 2, 1}, getModes(n, 3))
 }
 
 func TestAddPositionMode(t *testing.T) {
@@ -60,10 +60,10 @@ func TestAddPositionMode(t *testing.T) {
 }
 
 func TestAddRelativeMode(t *testing.T) {
-	c := NewComputer([]int{9, 7, 22201, 0, 0, 0, 99, 1})
+	c := NewComputer([]int{109, 7, 22201, 0, 0, 0, 99, 1})
 
 	c.Run()
-	assert.Equal(t, []int{9, 7, 22201, 0, 0, 0, 99, 2}, c.Mem)
+	assert.Equal(t, []int{109, 7, 22201, 0, 0, 0, 99, 2}, c.Mem)
 }
 
 func TestGetModeList2(t *testing.T) {
