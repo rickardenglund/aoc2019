@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-const testName = "test"
+//const testName = "test"
 
 func Test_computerPrintItself(t *testing.T) {
 	program := []int{109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99}
@@ -34,4 +34,23 @@ func Test_computerOutputLargeNum2(t *testing.T) {
 	c.Run()
 
 	assert.Equal(t, 1125899906842624, c.GetLastOutput())
+}
+
+func Test_computerRead(t *testing.T) {
+	program := []int{9, 50, 203, 0, 99}
+	c := computer.NewComputer(program)
+
+	go c.Run()
+	c.Input <- computer.Msg{"", 55}
+
+	assert.Equal(t, 55, c.Mem[50])
+}
+
+func Test_computerAdj(t *testing.T) {
+	program := []int{109, 5, 9, 1, 209, -7, 2101, 1, 0, 50, 99, 8}
+	c := computer.NewComputer(program)
+
+	c.Run()
+
+	assert.Equal(t, 9, c.Mem[50])
 }

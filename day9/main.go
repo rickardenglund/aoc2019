@@ -24,18 +24,21 @@ func part1() int {
 	c.LogChannel = &logCh
 
 	go c.Run()
+
+	go func() {
+		for {
+			log, more := <-logCh
+			if more {
+				fmt.Printf("Log: %v\n", log)
+			} else {
+				break
+			}
+		}
+	}()
 	c.Input <- computer.Msg{
 		Sender: "P1",
 		Data:   1,
 	}
-
-	go func() {
-		for {
-			log := <-logCh
-			fmt.Printf("Log: %v\n", log)
-		}
-	}()
-
 	for {
 		out, more := <-out
 		if !more {

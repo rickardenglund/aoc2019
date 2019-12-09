@@ -41,10 +41,23 @@ func (c *Computer) RunWithWaithGroup(wg *sync.WaitGroup) {
 }
 
 func (c *Computer) Run() {
+	names := map[int]string{
+		1: "add",
+		2: "mul",
+		3: "read",
+		4: "write",
+		5: "jumpIfTrue",
+		6: "JumpIfFalse",
+		7: "Less than",
+		8: "equal",
+		9: "AdjBase",
+	}
+
 	pc := 0
 loop:
 	for {
 		opcode := c.getOpcode(pc)
+		c.log(fmt.Sprintf("pc: %v, %v: %v", pc, names[opcode], c.Mem[pc:pc+5]))
 		switch opcode {
 		case 1: // add
 			params := c.getParamValues(pc, 2)
@@ -85,22 +98,25 @@ loop:
 			}
 		case 7: // less than
 			params := c.getParamValues(pc, 2)
+			outputAddress := c.getOutputAddress(pc, 3)
 			if params[0] < params[1] {
-				c.Mem[c.Mem[pc+3]] = 1
+				c.Mem[outputAddress] = 1
 			} else {
-				c.Mem[c.Mem[pc+3]] = 0
+				c.Mem[outputAddress] = 0
 			}
 			pc += 4
 		case 8: // equal
 			params := c.getParamValues(pc, 2)
+			outputAddress := c.getOutputAddress(pc, 3)
 			if params[0] == params[1] {
-				c.Mem[c.Mem[pc+3]] = 1
+				c.Mem[outputAddress] = 1
 			} else {
-				c.Mem[c.Mem[pc+3]] = 0
+				c.Mem[outputAddress] = 0
 			}
 			pc += 4
 		case 9: // adjust relative base
-			c.relativeBase += c.Mem[pc+1]
+			params := c.getParamValues(pc, 1)
+			c.relativeBase += params[0]
 			pc += 2
 		case 99:
 			if c.Input != nil {
