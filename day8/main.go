@@ -23,7 +23,6 @@ const height = 6
 func part1() int {
 	lines := inputs.GetLines("day8/input.txt")
 	image := lines[0]
-
 	layers := getLayers(image, width, height)
 
 	var minZeroLayer int
@@ -42,7 +41,6 @@ func part1() int {
 func part2() int {
 	lines := inputs.GetLines("day8/input.txt")
 	image := lines[0]
-
 	layers := getLayers(image, width, height)
 	combined := combineLayers(layers, width, height)
 	printImage(combined, width)
