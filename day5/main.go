@@ -28,7 +28,6 @@ func part2() int {
 
 func do(in int) int {
 	c := computer.NewComputer(computer.ReadMemory("day5/input.txt"))
-	close(c.Output)
 
 	go func() {
 		defer func() {

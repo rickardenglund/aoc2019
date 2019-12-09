@@ -44,10 +44,29 @@ func TestEqual(t *testing.T) {
 
 	go c.Run()
 	c.Input <- Msg{"test", 2}
-	assert.Equal(t, []int{0}, c.outputs)
+	assert.Equal(t, []int{0}, c.Outputs)
 }
 
 func TestGetParams(t *testing.T) {
 	n := 12302
 	assert.Equal(t, []int{3, 2, 1, 0}, getModes(n, 3))
+}
+
+func TestAddPositionMode(t *testing.T) {
+	c := NewComputer([]int{01, 5, 5, 5, 99, 1})
+
+	c.Run()
+	assert.Equal(t, []int{01, 5, 5, 5, 99, 2}, c.Mem)
+}
+
+func TestAddRelativeMode(t *testing.T) {
+	c := NewComputer([]int{9, 7, 22201, 0, 0, 0, 99, 1})
+
+	c.Run()
+	assert.Equal(t, []int{9, 7, 22201, 0, 0, 0, 99, 2}, c.Mem)
+}
+
+func TestGetModeList2(t *testing.T) {
+	assert.Equal(t, []int{2, 2, 2}, getModes(22201, 3))
+
 }

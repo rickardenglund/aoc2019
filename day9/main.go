@@ -1,6 +1,7 @@
 package main
 
 import (
+	"aoc2019/computer"
 	"fmt"
 	"time"
 )
@@ -15,7 +16,35 @@ func main() {
 }
 
 func part1() int {
-	return -1
+	c := computer.NewComputerWithName("Day9", computer.ReadMemory("day9/input.txt"))
+
+	out := make(chan computer.Msg)
+	c.Output = out
+	logCh := make(chan string)
+	c.LogChannel = &logCh
+
+	go c.Run()
+	c.Input <- computer.Msg{
+		Sender: "P1",
+		Data:   1,
+	}
+
+	go func() {
+		for {
+			log := <-logCh
+			fmt.Printf("Log: %v\n", log)
+		}
+	}()
+
+	for {
+		out, more := <-out
+		if !more {
+			break
+		}
+		fmt.Printf("%v\n", out)
+	}
+
+	return c.GetLastOutput()
 
 }
 

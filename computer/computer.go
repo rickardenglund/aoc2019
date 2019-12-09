@@ -11,12 +11,13 @@ import (
 )
 
 type Computer struct {
-	Mem        []int
-	Input      chan Msg
-	Output     chan Msg
-	outputs    []int
-	name       string
-	LogChannel *chan string
+	Mem          []int
+	relativeBase int
+	Input        chan Msg
+	Output       chan Msg
+	Outputs      []int
+	name         string
+	LogChannel   *chan string
 }
 
 func (c *Computer) ReadMemory(path string) {
@@ -47,21 +48,24 @@ loop:
 		switch opcode {
 		case 1: // add
 			params := c.getParamValues(pc, 2)
-			c.Mem[c.Mem[pc+3]] = params[0] + params[1]
+			outputAddress := c.getOutputAddress(pc, 3)
+			c.Mem[outputAddress] = params[0] + params[1]
 			pc += 4
 		case 2: // mul
 			params := c.getParamValues(pc, 2)
-			c.Mem[c.Mem[pc+3]] = params[0] * params[1]
+			outputAddress := c.getOutputAddress(pc, 3)
+			c.Mem[outputAddress] = params[0] * params[1]
 			pc += 4
 		case 3: // Input
 			c.log(fmt.Sprintf("reading input"))
 			msg := <-c.Input
-			c.Mem[c.Mem[pc+1]] = msg.Data
+			outputAddress := c.getOutputAddress(pc, 1)
+			c.Mem[outputAddress] = msg.Data
 			c.log(fmt.Sprintf("got: %v from %v", msg.Data, msg.Sender))
 			pc += 2
 		case 4: // Output
 			params := c.getParamValues(pc, 1)
-			c.outputs = append(c.outputs, params[0])
+			c.Outputs = append(c.Outputs, params[0])
 			c.log(fmt.Sprintf("outputs: %v", params[0]))
 			c.trySend(params[0])
 			pc += 2
@@ -95,8 +99,13 @@ loop:
 				c.Mem[c.Mem[pc+3]] = 0
 			}
 			pc += 4
+		case 9: // adjust relative base
+			c.relativeBase += c.Mem[pc+1]
+			pc += 2
 		case 99:
-			close(c.Input)
+			if c.Input != nil {
+				close(c.Input)
+			}
 			c.log("Stop")
 			break loop
 		default:
@@ -126,16 +135,29 @@ func (c *Computer) getOpcode(pc int) int {
 	return c.Mem[pc] % 100
 }
 
+func (c *Computer) getOutputAddress(pc int, outputPos int) (address int) {
+	modeList := getModes(c.Mem[pc], outputPos)
+	if modeList[outputPos-1] == 2 {
+		return c.relativeBase + c.Mem[pc+outputPos] // relative mode
+	}
+	return c.Mem[pc+outputPos] //position mode
+}
+
 func (c *Computer) getParamValues(pc int, nParams int) (values []int) {
 	inParams := c.Mem[pc+1 : pc+1+nParams]
 	modeList := getModes(c.Mem[pc], nParams)
 
 	for i := 0; i < nParams; i++ {
 		var val int
-		if modeList[i] == 1 {
+		switch modeList[i] {
+		case 1:
 			val = inParams[i]
-		} else if modeList[i] == 0 {
+		case 2:
+			val = c.Mem[inParams[i]+c.relativeBase]
+		case 0:
 			val = c.Mem[inParams[i]]
+		default:
+			log.Fatal("Invalid param mode")
 		}
 
 		values = append(values, val)
@@ -149,7 +171,7 @@ func getModes(op, nParams int) []int {
 
 	modes := []int{number % 10}
 	var divisor = 10
-	for i := 0; i < nParams; i++ {
+	for i := 1; i < nParams; i++ {
 		modes = append(modes, (number/divisor)%divisor)
 		divisor *= 10
 	}
@@ -162,7 +184,7 @@ type Msg struct {
 }
 
 func NewComputerWithName(name string, mem []int) Computer {
-	memCopy := make([]int, len(mem))
+	memCopy := make([]int, 1024*10)
 
 	copy(memCopy, mem)
 
@@ -183,7 +205,7 @@ func (c *Computer) setMem(ints []int) {
 }
 
 func (c *Computer) GetLastOutput() int {
-	return c.outputs[len(c.outputs)-1]
+	return c.Outputs[len(c.Outputs)-1]
 }
 
 func ReadMemory(path string) []int {
