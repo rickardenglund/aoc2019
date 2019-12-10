@@ -1,6 +1,7 @@
 package main
 
 import (
+	"aoc2019/inputs"
 	"fmt"
 	"math"
 	"strings"
@@ -17,7 +18,24 @@ func main() {
 }
 
 func part1() int {
-	return -1
+	lines := inputs.GetLines("day10/input.txt")
+	l := ""
+	for i := range lines {
+		l = fmt.Sprintf("%s\n%s", l, lines[i])
+	}
+
+	fmt.Printf("%v\n", l)
+	m := getAsteroids(l)
+
+	max := 0
+	for pos := range m {
+		n := visibleAsteroids(pos, m)
+		if n > max {
+			max = n
+		}
+	}
+
+	return max
 }
 
 func part2() int {
@@ -51,6 +69,10 @@ func inLine(a, b, c pos) bool {
 	k := dy / dx
 	m := a.y - k*a.x
 
+	if almostEqual(dx, 0.0) {
+		return almostEqual(a.x, c.x)
+	}
+
 	cm := c.y - k*c.x
 	return almostEqual(cm, m)
 }
@@ -64,7 +86,7 @@ func visibleAsteroids(p pos, m map[pos]bool) int {
 	for c := range m {
 		if canSee(p, c, m) {
 			nVisible++
-			fmt.Printf("%v\n", c)
+			//fmt.Printf("%v\n", c)
 		}
 	}
 	return nVisible
@@ -79,19 +101,22 @@ func canSee(a pos, c pos, m map[pos]bool) bool {
 		if eqPos(b, a) || eqPos(b, c) {
 			continue
 		}
-		if inLine(a, b, c) {
+		if inLine(a, b, c) && between(a, b, c) {
 			return false
 		}
 	}
 	return true
 }
 
+func between(a, b, c pos) bool {
+	return almostEqual(dist(a, b)+dist(b, c), dist(a, c))
+}
+
 func eqPos(a, b pos) bool {
 	return almostEqual(a.x, b.x) && almostEqual(a.y, b.y)
 }
 
-func between(a, b, x float64) bool {
-	min := math.Min(a, b)
-	max := math.Max(a, b)
-	return min > a && x < max
+func dist(a, b pos) float64 {
+	return math.Sqrt(math.Pow(math.Abs(a.x-b.x), 2) +
+		math.Pow(math.Abs(a.y-b.y), 2))
 }

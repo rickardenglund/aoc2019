@@ -55,13 +55,16 @@ func Test_canSee(t *testing.T) {
 	assert.True(t, canSee(pos{4, 0}, pos{1, 2}, m))
 	assert.True(t, canSee(pos{4, 0}, pos{1, 0}, m))
 	assert.True(t, canSee(pos{1, 0}, pos{2, 2}, m))
+	assert.False(t, canSee(pos{4, 2}, pos{2, 2}, m))
+	assert.False(t, canSee(pos{4, 2}, pos{4, 4}, m))
+	assert.True(t, canSee(pos{4, 2}, pos{4, 0}, m))
 }
 
 func Test_NAsteroids(t *testing.T) {
 	m := getAsteroids(ex1)
 	assert.Equal(t, 7, visibleAsteroids(pos{1, 0}, m))
-	//assert.Equal(t, 5, visibleAsteroids(pos{4, 2}, m))
-	//assert.Equal(t, 7, visibleAsteroids(pos{4, 0}, m))
+	assert.Equal(t, 5, visibleAsteroids(pos{4, 2}, m))
+	assert.Equal(t, 7, visibleAsteroids(pos{4, 0}, m))
 }
 
 func Test_NAsteroids2(t *testing.T) {
