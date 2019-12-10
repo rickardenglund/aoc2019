@@ -16,7 +16,6 @@ func main() {
 
 func part1() int {
 	return -1
-
 }
 
 func part2() int {
