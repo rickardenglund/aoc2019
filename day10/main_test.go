@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/stretchr/testify/assert"
+	"math"
 	"testing"
 )
 
@@ -104,4 +105,11 @@ func Test_NAsteroidsLarge(t *testing.T) {
 ###.##.####.##.#..##`)
 	//fmt.Printf("%v\n", m)
 	assert.Equal(t, 210, visibleAsteroids(pos{11, 13}, m))
+}
+
+func Test_getAngle(t *testing.T) {
+	assert.InDelta(t, math.Pi/4, getAngle(pos{0, 0}, pos{1, 1}), float64EqualityThreshold)
+	assert.InDelta(t, 0, getAngle(pos{0, 0}, pos{0, 1}), float64EqualityThreshold)
+	assert.InDelta(t, math.Pi/2, getAngle(pos{0, 0}, pos{1, 0}), float64EqualityThreshold)
+	assert.InDelta(t, math.Pi*1.5, getAngle(pos{0, 0}, pos{-1, 0}), float64EqualityThreshold)
 }
