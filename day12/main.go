@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 	"time"
 )
 
@@ -30,22 +28,37 @@ func part1() int {
 	return energy(moons)
 }
 
+// 4686774924 to low
 func part2() int {
 	moons := []*moon{
-		{vec{-8, -10, 0}, vec{}},
-		{vec{5, 5, 10}, vec{}},
-		{vec{2, -7, 3}, vec{}},
-		{vec{9, -8, -3}, vec{}},
+		{vec{-8, -9, -7}, vec{}},
+		{vec{-5, 2, -1}, vec{}},
+		{vec{11, 8, -14}, vec{}},
+		{vec{1, -4, -11}, vec{}},
 	}
+
+	i := findLoop(moons)
+	return i
+}
+
+func findLoop(moons []*moon) int {
 	var i int
-	visited := map[string]bool{toString(moons): true}
+	startPos := [4]moon{*moons[0], *moons[1], *moons[2], *moons[3]}
+	visited := map[[4]moon]bool{startPos: true}
+	start := time.Now()
 	for {
 		grav(moons)
 		applyVel(moons)
 		i++
 
-		if visited[toString(moons)] {
+		if visited[[4]moon{*moons[0], *moons[1], *moons[2], *moons[3]}] {
 			break
+		}
+
+		const Batch = 10000000
+		if i%Batch == 0 {
+			fmt.Printf("%v: %v\n", i, time.Since(start)/Batch)
+			start = time.Now()
 		}
 	}
 	return i
@@ -71,15 +84,10 @@ func applyVel(moons []*moon) {
 }
 
 func grav(moons []*moon) {
-	visited := map[string]bool{}
-
-	for ai := range moons {
-		for bi := range moons {
-			if ai == bi || visited[toStr(ai, bi)] || visited[toStr(bi, ai)] {
-				continue
-			}
+	nMoons := len(moons)
+	for ai := 0; ai < nMoons; ai++ {
+		for bi := ai + 1; bi < nMoons; bi++ {
 			gravity(moons[ai], moons[bi])
-			visited[toStr(ai, bi)] = true
 		}
 	}
 }
@@ -111,10 +119,6 @@ func gravity(a, b *moon) {
 
 }
 
-func toStr(a, b int) string {
-	return strconv.Itoa(a) + strconv.Itoa(b)
-}
-
 func energy(moons []*moon) int {
 	total := 0
 	for i := range moons {
@@ -137,12 +141,4 @@ func Abs(x int) int {
 		return -x
 	}
 	return x
-}
-
-func toString(moons []*moon) string {
-	var sb strings.Builder
-	for i := range moons {
-		sb.WriteString(fmt.Sprintf("%v,", moons[i]))
-	}
-	return sb.String()
 }

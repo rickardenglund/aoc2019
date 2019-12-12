@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"time"
 )
 
 func Test_gravity(t *testing.T) {
@@ -60,17 +59,7 @@ func Test_repeat1(t *testing.T) {
 		{vec{4, -8, 8}, vec{}},
 		{vec{3, 5, -1}, vec{}},
 	}
-	var i int
-	visited := map[string]bool{toString(moons): true}
-	for {
-		grav(moons)
-		applyVel(moons)
-		i++
-
-		if visited[toString(moons)] {
-			break
-		}
-	}
+	i := findLoop(moons)
 	assert.Equal(t, 2772, i)
 }
 
@@ -81,23 +70,16 @@ func Test_repeat2(t *testing.T) {
 		{vec{2, -7, 3}, vec{}},
 		{vec{9, -8, -3}, vec{}},
 	}
-	var i int
-	visited := map[string]bool{toString(moons): true}
-	start := time.Now()
-	for {
-		grav(moons)
-		applyVel(moons)
-		i++
 
-		if visited[toString(moons)] {
-			break
-		}
-		const Batch = 100000
-		if i%Batch == 0 {
-			fmt.Printf("%v: %v\n", i, time.Since(start)/Batch)
-			start = time.Now()
-		}
-
-	}
+	i := findLoop(moons)
 	assert.Equal(t, 4686774924, i)
+}
+
+func Test_genPairs(t *testing.T) {
+	for i := 0; i < 5; i++ {
+		for j := i + 1; j < 5; j++ {
+			fmt.Printf("(%v %v)", i, j)
+		}
+		fmt.Printf("\n")
+	}
 }
