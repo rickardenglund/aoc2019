@@ -3,7 +3,9 @@ package main
 import (
 	"aoc2019/inputs"
 	"fmt"
+	"log"
 	"math"
+	"sort"
 	"strings"
 	"time"
 )
@@ -29,7 +31,6 @@ func getMaxPos() (pos, int) {
 		l = fmt.Sprintf("%s\n%s", l, lines[i])
 	}
 
-	//fmt.Printf("%v\n", l)
 	m := getAsteroids(l)
 
 	max := 0
@@ -54,20 +55,60 @@ func part2() int {
 	m := getAsteroids(l)
 
 	p, _ := getMaxPos()
+	fmt.Printf("maxpos: %v\n", p)
 
-	fmt.Printf("%v\n", getPolarList(p, m))
-	return -1
+	list := getPolarList(p, m)
+	explosion200 := getNExplosion(200, list)
+
+	fmt.Printf("200 pos: %v\n", explosion200)
+	return explosion200.x*100 + explosion200.y
+}
+
+func getNExplosion(n int, pl []polar) pos {
+	if n > len(pl) || n <= 0 {
+		log.Fatal("not implemented")
+	}
+	cur := pl[0]
+	nExploded := 1
+	for i := 1; i < len(pl); i++ {
+		if almostEqual(cur.angle, pl[i].angle) {
+			continue
+		}
+
+		if nExploded == n {
+			break
+		}
+		cur = pl[i]
+		nExploded++
+	}
+
+	return pos{cur.x, cur.y}
 }
 
 func getPolarList(origo pos, m map[pos]bool) []polar {
 	var positions []polar
 	for other := range m {
-		if eqPos(origo, other) {
+		if origo == other {
 			continue
 		}
-		pp := polar{r: dist(origo, other), angle: getAngle(origo, other)}
+		if other.x == 11 && other.y == 12 {
+			fmt.Printf("apa\n")
+		}
+		pp := polar{
+			r:     dist(origo, other),
+			angle: getAngle(origo, other),
+			x:     other.x,
+			y:     other.y,
+		}
 		positions = append(positions, pp)
 	}
+
+	sort.Slice(positions, func(i, j int) bool {
+		if !almostEqual(positions[i].angle, positions[j].angle) {
+			return positions[i].angle < positions[j].angle
+		}
+		return positions[i].r < positions[j].r
+	})
 
 	return positions
 }
@@ -75,30 +116,29 @@ func getPolarList(origo pos, m map[pos]bool) []polar {
 func getAngle(origo, other pos) (angle float64) {
 	dx := other.x - origo.x
 	dy := other.y - origo.y
-	if dx == 0 {
-		if dy > 0 {
-			angle = 0
-		} else {
-			angle = math.Pi / 2
-		}
-	} else {
-		angle = math.Atan(dy / dx)
-		if d
-	}
+
+	return angleOf(pos{dx, dy})
+}
+
+func angleOf(p pos) float64 {
+	//angle := math.Mod(math.Atan2(float64(p.y), float64(-p.x))-math.Pi/+2*math.Pi, 2*math.Pi)
+	angle := math.Mod(4.5*math.Pi+math.Atan2(float64(p.y), float64(p.x)), 2*math.Pi)
 	return angle
 }
 
 type pos struct {
-	x float64
-	y float64
+	x int
+	y int
 }
 
 type polar struct {
 	r     float64
 	angle float64
+	x     int
+	y     int
 }
 
-const float64EqualityThreshold = 0.001
+const float64EqualityThreshold = 0.00000001
 
 func getAsteroids(str string) map[pos]bool {
 	m := make(map[pos]bool)
@@ -107,25 +147,11 @@ func getAsteroids(str string) map[pos]bool {
 		for x := range lines[y] {
 			a := lines[y][x]
 			if a == '#' {
-				m[pos{float64(x), float64(y)}] = true
+				m[pos{x, y}] = true
 			}
 		}
 	}
 	return m
-}
-
-func inLine(a, b, c pos) bool {
-	dx := a.x - b.x
-	dy := a.y - b.y
-	k := dy / dx
-	m := a.y - k*a.x
-
-	if almostEqual(dx, 0.0) {
-		return almostEqual(a.x, c.x)
-	}
-
-	cm := c.y - k*c.x
-	return almostEqual(cm, m)
 }
 
 func almostEqual(a, b float64) bool {
@@ -133,41 +159,36 @@ func almostEqual(a, b float64) bool {
 }
 
 func visibleAsteroids(p pos, m map[pos]bool) int {
-	nVisible := 0
-	for c := range m {
-		if canSee(p, c, m) {
+	coords := getPolarList(p, m)
+
+	nVisible := 1
+	for i := 1; i < len(coords); i++ {
+		if !almostEqual(coords[i].angle, coords[i-1].angle) {
 			nVisible++
-			//fmt.Printf("%v\n", c)
 		}
 	}
 	return nVisible
 }
 
-func canSee(a pos, c pos, m map[pos]bool) bool {
-	if eqPos(a, c) {
-		return false
-	}
+func dist(origo, other pos) float64 {
+	a := float64(origo.x - other.x)
+	b := float64(origo.y - other.y)
+	return math.Sqrt(math.Pow(a, 2) + math.Pow(b, 2))
+}
 
-	for b := range m {
-		if eqPos(b, a) || eqPos(b, c) {
-			continue
+func draw(hull map[pos]bool, minX, maxX, minY, maxY int) {
+	for y := minY; y <= maxY; y++ {
+		for x := minX; x <= maxX; x++ {
+			if x == 25 && y == 32 {
+				fmt.Printf("X")
+			} else if x == 11 && y == 12 {
+				fmt.Printf("P")
+			} else if !hull[pos{x, y}] {
+				fmt.Printf(".")
+			} else {
+				fmt.Printf("#")
+			}
 		}
-		if inLine(a, b, c) && between(a, b, c) {
-			return false
-		}
+		fmt.Printf("\n")
 	}
-	return true
-}
-
-func between(a, b, c pos) bool {
-	return almostEqual(dist(a, b)+dist(b, c), dist(a, c))
-}
-
-func eqPos(a, b pos) bool {
-	return almostEqual(a.x, b.x) && almostEqual(a.y, b.y)
-}
-
-func dist(a, b pos) float64 {
-	return math.Sqrt(math.Pow(math.Abs(a.x-b.x), 2) +
-		math.Pow(math.Abs(a.y-b.y), 2))
 }
