@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
 func Test_gravity(t *testing.T) {
@@ -81,6 +83,7 @@ func Test_repeat2(t *testing.T) {
 	}
 	var i int
 	visited := map[string]bool{toString(moons): true}
+	start := time.Now()
 	for {
 		grav(moons)
 		applyVel(moons)
@@ -89,6 +92,12 @@ func Test_repeat2(t *testing.T) {
 		if visited[toString(moons)] {
 			break
 		}
+		const Batch = 100000
+		if i%Batch == 0 {
+			fmt.Printf("%v: %v\n", i, time.Since(start)/Batch)
+			start = time.Now()
+		}
+
 	}
 	assert.Equal(t, 4686774924, i)
 }

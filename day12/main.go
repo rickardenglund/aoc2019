@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -30,7 +31,24 @@ func part1() int {
 }
 
 func part2() int {
-	return -1
+	moons := []*moon{
+		{vec{-8, -10, 0}, vec{}},
+		{vec{5, 5, 10}, vec{}},
+		{vec{2, -7, 3}, vec{}},
+		{vec{9, -8, -3}, vec{}},
+	}
+	var i int
+	visited := map[string]bool{toString(moons): true}
+	for {
+		grav(moons)
+		applyVel(moons)
+		i++
+
+		if visited[toString(moons)] {
+			break
+		}
+	}
+	return i
 }
 
 type vec struct {
@@ -122,9 +140,9 @@ func Abs(x int) int {
 }
 
 func toString(moons []*moon) string {
-	str := ""
+	var sb strings.Builder
 	for i := range moons {
-		str += fmt.Sprintf("%v,", moons[i])
+		sb.WriteString(fmt.Sprintf("%v,", moons[i]))
 	}
-	return str
+	return sb.String()
 }
