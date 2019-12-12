@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"math"
 	"sort"
@@ -63,8 +64,11 @@ const exLarge = `.#..##.###...#######
 
 func Test_NAsteroidsLarge(t *testing.T) {
 	m := getAsteroids(exLarge)
-	//fmt.Printf("%v\n", m)
 	assert.Equal(t, 210, visibleAsteroids(pos{11, 13}, m))
+}
+
+func Test_getMaxpos(t *testing.T) {
+
 }
 
 func Test_getAngle(t *testing.T) {
@@ -94,10 +98,18 @@ func Test_sort(t *testing.T) {
 func Test_getNExplosion(t *testing.T) {
 	m := getAsteroids(exLarge)
 
-	pl := getPolarList(pos{11, 13}, m)
+	maxPos, n := getMaxPos(m)
+
+	fmt.Printf("%v %v\n", maxPos, n)
+	pl := getPolarList(maxPos, m)
 
 	assert.Equal(t, pos{11, 12}, getNExplosion(1, pl))
 	assert.Equal(t, pos{12, 1}, getNExplosion(2, pl))
+	assert.Equal(t, pos{12, 2}, getNExplosion(3, pl))
+	assert.Equal(t, pos{12, 8}, getNExplosion(10, pl))
+	assert.Equal(t, pos{16, 0}, getNExplosion(20, pl))
+	assert.Equal(t, pos{16, 9}, getNExplosion(50, pl))
 	assert.Equal(t, pos{8, 2}, getNExplosion(200, pl))
 	assert.Equal(t, pos{10, 9}, getNExplosion(201, pl))
+	//assert.Equal(t, pos{11, 1}, getNExplosion(299, pl))
 }

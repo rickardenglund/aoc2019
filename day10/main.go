@@ -20,19 +20,13 @@ func main() {
 }
 
 func part1() int {
-	_, max := getMaxPos()
+	input := inputs.GetLine("day10/input.txt")
+	m := getAsteroids(input)
+	_, max := getMaxPos(m)
 	return max
 }
 
-func getMaxPos() (pos, int) {
-	lines := inputs.GetLines("day10/input.txt")
-	l := ""
-	for i := range lines {
-		l = fmt.Sprintf("%s\n%s", l, lines[i])
-	}
-
-	m := getAsteroids(l)
-
+func getMaxPos(m map[pos]bool) (pos, int) {
 	max := 0
 	var maxPos pos
 	for pos := range m {
@@ -46,15 +40,10 @@ func getMaxPos() (pos, int) {
 }
 
 func part2() int {
-	lines := inputs.GetLines("day10/input.txt")
-	l := ""
-	for i := range lines {
-		l = fmt.Sprintf("%s\n%s", l, lines[i])
-	}
+	input := inputs.GetLine("day10/input.txt")
+	m := getAsteroids(input)
 
-	m := getAsteroids(l)
-
-	p, _ := getMaxPos()
+	p, _ := getMaxPos(m)
 	fmt.Printf("maxpos: %v\n", p)
 
 	list := getPolarList(p, m)
@@ -80,6 +69,10 @@ func getNExplosion(n int, pl []polar) pos {
 		}
 		cur = pl[i]
 		nExploded++
+
+		if i+1 == len(pl) {
+			log.Fatal("Too many")
+		}
 	}
 
 	return pos{cur.x, cur.y}
@@ -90,9 +83,6 @@ func getPolarList(origo pos, m map[pos]bool) []polar {
 	for other := range m {
 		if origo == other {
 			continue
-		}
-		if other.x == 11 && other.y == 12 {
-			fmt.Printf("apa\n")
 		}
 		pp := polar{
 			r:     dist(origo, other),
