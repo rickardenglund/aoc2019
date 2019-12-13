@@ -122,6 +122,9 @@ loop:
 			if c.Input != nil {
 				close(c.Input)
 			}
+			if c.Output != nil {
+				close(c.Output)
+			}
 			c.log("Stop")
 			break loop
 		default:
