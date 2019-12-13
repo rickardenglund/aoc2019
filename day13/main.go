@@ -10,9 +10,9 @@ import (
 )
 
 func main() {
-	//start := time.Now()
-	//p1 := part1()
-	//fmt.Printf("part1: %-10v in %v\n", p1, time.Since(start))
+	start := time.Now()
+	p1 := part1()
+	fmt.Printf("part1: %-10v in %v\n", p1, time.Since(start))
 	start2 := time.Now()
 	p2 := part2()
 	fmt.Printf("part2: %-10v in %v\n", p2, time.Since(start2))
@@ -28,14 +28,6 @@ func part1() int {
 	c := computer.NewComputer(program)
 	c.IncreaseMemory(2048)
 	c.Output = make(chan computer.Msg)
-
-	//logCh := make(chan string)
-	//c.LogChannel = &logCh
-	//go func() {
-	//	for {
-	//		fmt.Printf("%s\n", <-logCh)
-	//	}
-	//}()
 
 	go c.Run()
 	m := map[pos]int{}
@@ -90,32 +82,35 @@ func part2() int {
 	}()
 
 	go func() {
-		dir := 1
+		bp := findBall(&m)
 		for {
-			bp := findBall(m)
-			pp := findPaddle(m)
-			if bp.x+dir > pp.x {
+			bp = findBall(&m)
+			pp := findPaddle(&m)
+
+			if bp.x > pp.x {
 				c.Input <- computer.Msg{Data: 1}
-			} else if bp.x+dir < pp.x {
+			} else if bp.x < pp.x {
 				c.Input <- computer.Msg{Data: -1}
 			} else {
 				c.Input <- computer.Msg{Data: 0}
 			}
 
-			cmd := exec.Command("clear")
-			cmd.Stdout = os.Stdout
-			cmd.Run() //nolint:errcheck
-			draw(m, 0, 40, 0, 22)
-			fmt.Printf("%score: v\n", score)
-			fmt.Printf("bp: %v\n", bp)
-
+			if os.Getenv("GUI") == "true" {
+				time.Sleep(50 * time.Millisecond)
+				cmd := exec.Command("clear")
+				cmd.Stdout = os.Stdout
+				cmd.Run() //nolint:errcheck
+				draw(&m, 0, 40, 0, 22)
+				fmt.Printf("score: %v\n", score)
+				fmt.Printf("bp: %v\n", bp)
+			}
 		}
 	}()
 	wg.Wait()
-	return -1
+	return score
 }
 
-func findBall(m sync.Map) pos {
+func findBall(m *sync.Map) pos {
 	res := pos{-1, -1}
 	m.Range(func(k, v interface{}) bool {
 		if v == 4 {
@@ -128,7 +123,7 @@ func findBall(m sync.Map) pos {
 	return res
 }
 
-func findPaddle(m sync.Map) pos {
+func findPaddle(m *sync.Map) pos {
 	res := pos{-1, -1}
 	m.Range(func(k, v interface{}) bool {
 		if v == 3 {
@@ -141,7 +136,7 @@ func findPaddle(m sync.Map) pos {
 	return res
 }
 
-func draw(hull sync.Map, minX, maxX, minY, maxY int) {
+func draw(hull *sync.Map, minX, maxX, minY, maxY int) {
 	for y := minY; y <= maxY; y++ {
 		for x := minX; x <= maxX; x++ {
 			v, _ := hull.Load(pos{x, y})

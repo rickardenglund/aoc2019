@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -76,10 +75,24 @@ func Test_repeat2(t *testing.T) {
 }
 
 func Test_genPairs(t *testing.T) {
+	n := 0
 	for i := 0; i < 5; i++ {
 		for j := i + 1; j < 5; j++ {
-			fmt.Printf("(%v %v)", i, j)
+			n++
 		}
-		fmt.Printf("\n")
 	}
+	assert.Equal(t, 10, n)
+}
+
+func TestLCM(t *testing.T) {
+	assert.Equal(t, 8, LCM(4, 8))
+	assert.Equal(t, 8, LCM(8, 4))
+	assert.Equal(t, 24, LCM(12, 8))
+	assert.Equal(t, 24, LCM(4, LCM(8, 12)))
+	assert.Equal(t, 42, LCM(21, LCM(6, 7)))
+	assert.Equal(t, 105, LCM(7, LCM(5, 3)))
+}
+
+func TestLCMFold(t *testing.T) {
+	assert.Equal(t, 105, LCMFold([]int{7, 5, 3}))
 }

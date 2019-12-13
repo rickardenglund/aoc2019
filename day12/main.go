@@ -14,6 +14,7 @@ func main() {
 	fmt.Printf("part2: %-10v in %v\n", p2, time.Since(start2))
 }
 
+//9127
 func part1() int {
 	moons := []*moon{
 		{vec{-8, -9, -7}, vec{}},
@@ -28,7 +29,6 @@ func part1() int {
 	return energy(moons)
 }
 
-// 4686774924 to low
 func part2() int {
 	moons := []*moon{
 		{vec{-8, -9, -7}, vec{}},
@@ -37,31 +37,68 @@ func part2() int {
 		{vec{1, -4, -11}, vec{}},
 	}
 
-	i := findLoop(moons)
-	return i
+	return findLoop(moons)
+}
+
+type state struct {
+	pos   int //nolint:structcheck
+	speed int //nolint:structcheck
 }
 
 func findLoop(moons []*moon) int {
+	startX := getXState(moons)
+	startY := getYState(moons)
+	startZ := getZState(moons)
+
+	xVisited := map[[4]state]int{startX: 0}
+	yVisited := map[[4]state]int{startY: 0}
+	zVisited := map[[4]state]int{startZ: 0}
+
 	var i int
-	startPos := [4]moon{*moons[0], *moons[1], *moons[2], *moons[3]}
-	visited := map[[4]moon]bool{startPos: true}
-	start := time.Now()
 	for {
 		grav(moons)
 		applyVel(moons)
 		i++
 
-		if visited[[4]moon{*moons[0], *moons[1], *moons[2], *moons[3]}] {
-			break
+		xPrev, xok := xVisited[getXState(moons)]
+		yPrev, yok := yVisited[getYState(moons)]
+		zPrev, zok := zVisited[getZState(moons)]
+
+		if xok && yok && zok {
+			return LCMFold([]int{i - xPrev, i - yPrev, i - zPrev})
 		}
 
-		const Batch = 10000000
-		if i%Batch == 0 {
-			fmt.Printf("%v: %v\n", i, time.Since(start)/Batch)
-			start = time.Now()
-		}
+		xVisited[getXState(moons)] = i
+		yVisited[getYState(moons)] = i
+		zVisited[getZState(moons)] = i
 	}
-	return i
+}
+
+func getZState(moons []*moon) [4]state {
+	return [4]state{
+		{moons[0].pos.z, moons[0].vel.z},
+		{moons[1].pos.z, moons[1].vel.z},
+		{moons[2].pos.z, moons[2].vel.z},
+		{moons[3].pos.z, moons[3].vel.z},
+	}
+}
+
+func getYState(moons []*moon) [4]state {
+	return [4]state{
+		{moons[0].pos.y, moons[0].vel.y},
+		{moons[1].pos.y, moons[1].vel.y},
+		{moons[2].pos.y, moons[2].vel.y},
+		{moons[3].pos.y, moons[3].vel.y},
+	}
+}
+
+func getXState(moons []*moon) [4]state {
+	return [4]state{
+		{moons[0].pos.x, moons[0].vel.x},
+		{moons[1].pos.x, moons[1].vel.x},
+		{moons[2].pos.x, moons[2].vel.x},
+		{moons[3].pos.x, moons[3].vel.x},
+	}
 }
 
 type vec struct {
@@ -141,4 +178,23 @@ func Abs(x int) int {
 		return -x
 	}
 	return x
+}
+
+func LCMFold(xs []int) int {
+	agg := LCM(xs[0], xs[1])
+	for i := 2; i < len(xs); i++ {
+		agg = LCM(agg, xs[i])
+	}
+	return agg
+}
+
+func LCM(x, y int) int {
+	var i int
+	for {
+		i++
+		if i*x%y == 0 {
+			return i * x
+		}
+	}
+
 }
