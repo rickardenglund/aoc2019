@@ -11,8 +11,7 @@ func main() {
 }
 
 func part1() int {
-	c := computer.Computer{}
-	c.ReadMemory("day2/input.txt")
+	c := computer.NewComputer(computer.ReadMemory("day2/input.txt"))
 
 	c.Mem[1] = 12
 	c.Mem[2] = 2
@@ -23,8 +22,8 @@ func part1() int {
 func part2() int {
 	for noun := 0; noun < 100; noun++ {
 		for verb := 0; verb < 100; verb++ {
-			c := computer.Computer{}
-			c.ReadMemory("day2/input.txt")
+			c := computer.NewComputer(computer.ReadMemory("day2/input.txt"))
+
 			c.Mem[1] = noun
 			c.Mem[2] = verb
 			c.Run()

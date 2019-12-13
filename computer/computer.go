@@ -1,13 +1,11 @@
 package computer
 
 import (
+	"aoc2019/inputs"
 	"fmt"
 	"log"
 	"strconv"
 	"strings"
-	"sync"
-
-	"aoc2019/inputs"
 )
 
 type Computer struct {
@@ -18,6 +16,7 @@ type Computer struct {
 	Outputs      []int
 	name         string
 	LogChannel   *chan string
+	HaltChannel  chan bool
 }
 
 func (c *Computer) ReadMemory(path string) {
@@ -32,12 +31,6 @@ func (c *Computer) ReadMemory(path string) {
 		memory[i] = n
 	}
 	c.Mem = memory
-}
-
-func (c *Computer) RunWithWaithGroup(wg *sync.WaitGroup) {
-	defer wg.Done()
-	c.Run()
-	c.log("Halting")
 }
 
 func (c *Computer) Run() {
@@ -119,13 +112,8 @@ loop:
 			c.relativeBase += params[0]
 			pc += 2
 		case 99:
-			if c.Input != nil {
-				close(c.Input)
-			}
-			if c.Output != nil {
-				close(c.Output)
-			}
-			c.log("Stop")
+			c.log("Halt")
+			c.HaltChannel <- true
 			break loop
 		default:
 			log.Fatalf("Unknown opcode: %v pc: %v\n %v\n", opcode, pc, c.Mem)
@@ -185,6 +173,15 @@ func (c *Computer) getParamValues(pc int, nParams int) (values []int) {
 	return values
 }
 
+func LogTask(logCh chan string, enabled bool) {
+	for {
+		msg := <-logCh
+		if enabled {
+			fmt.Printf("%v\n", msg)
+		}
+	}
+}
+
 func getModes(op, nParams int) []int {
 	number := op / 100
 
@@ -208,8 +205,9 @@ func NewComputerWithName(name string, mem []int) Computer {
 	copy(memCopy, mem)
 
 	return Computer{
-		Mem:   memCopy,
-		Input: make(chan Msg),
+		Mem:         memCopy,
+		Input:       make(chan Msg),
+		HaltChannel: make(chan bool, 1),
 		//Output: make(chan Msg),
 		name: name,
 	}

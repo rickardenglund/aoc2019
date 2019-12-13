@@ -3,7 +3,6 @@ package main
 import (
 	computer "aoc2019/computer"
 	"fmt"
-	"sync"
 	"time"
 )
 
@@ -64,15 +63,6 @@ func part2() int {
 	return max
 }
 
-func logTask(logCh chan string) {
-	for {
-		msg := <-logCh
-		if false {
-			println(msg)
-		}
-	}
-}
-
 func CalcSignalFeedback(seq, mem []int) int {
 	const N = 5
 	var computers = make([]computer.Computer, N)
@@ -80,21 +70,18 @@ func CalcSignalFeedback(seq, mem []int) int {
 	for i := 0; i < N; i++ {
 		computers[i] = computer.NewComputerWithName(string('A'+i), mem)
 		computers[i].LogChannel = &logCh
-		computers[i].Output = make(chan computer.Msg)
+		computers[i].Output = make(chan computer.Msg, 1)
 	}
 
-	go logTask(logCh)
+	go computer.LogTask(logCh, false)
 
 	for i := 0; i < N; i++ {
 		j := (i + 1) % N
 		computers[j].Input = computers[i].Output
 	}
 
-	var wg sync.WaitGroup
-	wg.Add(N)
-
 	for i := 0; i < N; i++ {
-		go computers[i].RunWithWaithGroup(&wg)
+		go computers[i].Run()
 		computers[i].Input <- computer.Msg{Sender: "Init", Data: seq[i]}
 	}
 
@@ -103,7 +90,7 @@ func CalcSignalFeedback(seq, mem []int) int {
 		Data:   0,
 	}
 
-	wg.Wait()
+	<-computers[4].HaltChannel
 	return computers[N-1].GetLastOutput()
 
 }

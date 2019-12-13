@@ -31,10 +31,13 @@ func part1() int {
 
 	go c.Run()
 	m := map[pos]int{}
+	var x computer.Msg
+LOOP:
 	for {
-		x, more := <-c.Output
-		if !more {
-			break
+		select {
+		case x = <-c.Output:
+		case <-c.HaltChannel:
+			break LOOP
 		}
 		y := <-c.Output
 		t := <-c.Output
@@ -59,16 +62,17 @@ func part2() int {
 	c.IncreaseMemory(2048)
 	c.Output = make(chan computer.Msg)
 
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-	go c.RunWithWaithGroup(&wg)
+	go c.Run()
 	m := sync.Map{}
 	score := 0
 	go func() {
+	LOOP:
 		for {
-			x, more := <-c.Output
-			if !more {
-				break
+			var x computer.Msg
+			select {
+			case x = <-c.Output:
+			case <-c.HaltChannel:
+				break LOOP
 			}
 			y := <-c.Output
 			t := <-c.Output
@@ -106,7 +110,8 @@ func part2() int {
 			}
 		}
 	}()
-	wg.Wait()
+
+	<-c.HaltChannel
 	return score
 }
 

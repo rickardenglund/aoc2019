@@ -3,7 +3,6 @@ package main
 import (
 	"aoc2019/computer"
 	"fmt"
-	"sync"
 	"time"
 )
 
@@ -38,10 +37,8 @@ func do(in int) int {
 		}
 	}()
 
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go c.RunWithWaithGroup(&wg)
-	wg.Wait()
+	go c.Run()
 
+	<-c.HaltChannel
 	return c.GetLastOutput()
 }
