@@ -88,6 +88,7 @@ func part2() int {
 	go func() {
 		bp := findBall(&m)
 		for {
+			time.Sleep(2 * time.Millisecond) //TODO
 			bp = findBall(&m)
 			pp := findPaddle(&m)
 
