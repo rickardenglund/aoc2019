@@ -78,7 +78,7 @@ func Test_maxFuelSmall(t *testing.T) {
 
 func Test_maxFuelExpensive(t *testing.T) {
 	recipes := readRecipes(expensive)
-	assert.Equal(t, 82892753, fuelForOre(recipes))
+	assert.Equal(t, 460664, fuelForOre(recipes))
 }
 func Test_userSpares(t *testing.T) {
 	spares := map[string]int{

@@ -3,7 +3,6 @@ package main
 import (
 	"aoc2019/inputs"
 	"fmt"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -32,8 +31,7 @@ func part1() int {
 	return res[0].amount
 }
 
-//const totalOre = 216480
-const totalOre = 1000000000000
+//const totalOre = 1000000000000
 
 // to low 11758757
 func part2() int {
@@ -43,27 +41,34 @@ func part2() int {
 	return fuelForOre(recipes)
 }
 
+const totalOre = 1000000000000
+
 func fuelForOre(recipes map[string]recipe) int {
-	costs := map[int]int{}
-	var i int = 1
-	prev := 0
+	upperBound := totalOre
+	lowerBound := 0
+	cur := upperBound / 2
 	for {
-		start := time.Now()
-		res := simplify(recipes, []ingredient{{i, "FUEL"}})
-		thisCost := res[0].amount
-		_, ok := costs[thisCost-prev]
-		if ok {
-			fmt.Printf("loop: %v i: %v\n", thisCost-prev, costs[thisCost-prev])
+		highOk := canCreate(recipes, cur+1)
+		lowOk := canCreate(recipes, cur)
+
+		if !highOk && lowOk {
+			break
+		} else if highOk {
+			lowerBound = cur
+		} else if !lowOk {
+			upperBound = cur
 		}
-		costs[thisCost-prev] = i
-		fmt.Printf("n: %v cost: %v - diff: %v # %v\n", i, thisCost-prev, time.Since(start), totalOre-thisCost)
-		//fmt.Printf("%v\t %v\t%v\t %v\n", i, thisCost, thisCost-prev, average)
-		if thisCost > totalOre {
-			return i
+		cur = lowerBound + (upperBound-lowerBound)/2
+		if upperBound == lowerBound+1 {
+			return -1
 		}
-		i++
-		prev = thisCost
 	}
+	return cur
+}
+
+func canCreate(recipes map[string]recipe, n int) bool {
+	res := simplify(recipes, []ingredient{{n, "FUEL"}})
+	return res[0].amount < totalOre
 }
 
 type recipe struct {
@@ -138,15 +143,25 @@ func simplifyStep(r map[string]recipe, requiredIngredients []ingredient, spares 
 		requiredName := requiredIngredients[i].name
 		requiredAmount := requiredIngredients[i].amount
 		rec := r[requiredName]
+		if requiredName == "ORE" {
+			res = append(res, requiredIngredients[i])
+			continue
+		}
 		if rec.output > requiredAmount {
 			spares[requiredName] += rec.output - requiredAmount
 			res = append(res, rec.ingredients...)
 		} else if rec.output == requiredAmount {
 			res = append(res, rec.ingredients...)
 		} else if requiredAmount > rec.output {
-			res = append(res, ingredient{requiredAmount - rec.output, requiredName})
-			res = append(res, rec.ingredients...)
+			n := requiredAmount / rec.output
+			res = append(res, ingredient{requiredAmount % rec.output, requiredName})
+			var toAdd []ingredient
+			for j := range rec.ingredients {
+				toAdd = append(toAdd, ingredient{rec.ingredients[j].amount * n, rec.ingredients[j].name})
+			}
+			res = append(res, toAdd...)
 		}
+
 	}
 
 	res = merge(res)
@@ -184,9 +199,6 @@ func merge(ingredients []ingredient) []ingredient {
 		}
 	}
 
-	sort.Slice(res, func(i, j int) bool {
-		return strings.Compare(res[i].name, res[j].name) < 0
-	})
 	return res
 }
 
