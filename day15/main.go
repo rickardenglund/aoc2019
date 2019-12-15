@@ -40,14 +40,14 @@ func (p *pos) step(direction int) pos {
 }
 func opposite(dir int) int {
 	switch dir {
-	case 1:
-		return 2
-	case 2:
-		return 1
-	case 3:
-		return 4
-	case 4:
-		return 3
+	case north:
+		return south
+	case south:
+		return north
+	case west:
+		return east
+	case east:
+		return west
 	default:
 		log.Fatalln("Invalid direction")
 		return -1
@@ -63,12 +63,14 @@ const (
 	wall          = 0
 	open          = 1
 	oxygenStation = 2
+	oxygen        = 3
 )
 
 func part1() int {
 	program := computer.ReadMemory("day15/input.txt")
 	c := computer.NewComputer(program)
 	resultCh := make(chan int)
+	exploreCompletedCh := make(chan bool)
 	c.Output = make(chan computer.Msg)
 
 	go c.Run()
@@ -78,14 +80,90 @@ func part1() int {
 		path := []pos{{0, 0}}
 
 		visit(&c, resultCh, m, path)
+		exploreCompletedCh <- true
 	}()
 	return <-resultCh
+}
+
+func part2() int {
+	program := computer.ReadMemory("day15/input.txt")
+	c := computer.NewComputer(program)
+	resultCh := make(chan int)
+	result2Ch := make(chan int)
+	c.Output = make(chan computer.Msg)
+
+	go c.Run()
+
+	go func() {
+		m := map[pos]int{}
+		path := []pos{{0, 0}}
+
+		visit(&c, resultCh, m, path)
+		if false {
+			draw(m, -drawSize, drawSize, -drawSize, drawSize)
+		}
+
+		// incorrect solution but correct answer
+		time := timeToFill(m)
+		result2Ch <- time
+	}()
+	<-resultCh
+
+	return <-result2Ch
+}
+
+func timeToFill(m map[pos]int) int {
+	gp := getGeneratorPos(m)
+
+	res := flow(m, gp, 0)
+	return res
+
+}
+
+func flow(m map[pos]int, p pos, t int) int {
+	draw(m, -drawSize, drawSize, -drawSize, drawSize)
+	time.Sleep(200 * time.Millisecond)
+	neighbours := getOpenNeighbours(m, p)
+	if len(neighbours) == 0 {
+		return t
+	}
+
+	for i := range neighbours {
+		m[neighbours[i]] = oxygen
+	}
+
+	max := 0
+	for i := range neighbours {
+		r := flow(m, neighbours[i], t+1)
+		if r > max {
+			max = r
+		}
+	}
+	return max
+}
+
+func getOpenNeighbours(m map[pos]int, p pos) (res []pos) {
+	for i := 1; i <= 4; i++ {
+		if m[p.step(i)] == open {
+			res = append(res, p.step(i))
+		}
+	}
+	return
+}
+
+func getGeneratorPos(m map[pos]int) pos {
+	for p, v := range m {
+		if v == oxygenStation {
+			return p
+		}
+	}
+	log.Fatalln("Station not found")
+	return pos{}
 }
 
 const drawSize = 30
 
 func visit(c *computer.Computer, resultCh chan int, m map[pos]int, path []pos) {
-	draw(m, -drawSize, drawSize, -drawSize, drawSize)
 	cur := path[len(path)-1]
 	dirToTry := []int{}
 	for dir := 1; dir <= 4; dir++ {
@@ -120,6 +198,8 @@ func testDirection(cur pos, dir int, c *computer.Computer, resultCh chan int, pa
 		c.Input <- computer.Msg{Data: opposite(dir)}
 		assert(open, (<-c.Output).Data)
 	case oxygenStation:
+		c.Input <- computer.Msg{Data: opposite(dir)}
+		assert(open, (<-c.Output).Data)
 		resultCh <- len(path)
 	}
 	return resp.Data
@@ -132,9 +212,6 @@ func assert(expected interface{}, value interface{}) {
 
 }
 
-func part2() int {
-	return -1
-}
 func draw(m map[pos]int, minX, maxX, minY, maxY int) {
 	cmd := exec.Command("clear")
 	cmd.Stdout = os.Stdout
@@ -147,14 +224,14 @@ func draw(m map[pos]int, minX, maxX, minY, maxY int) {
 				continue
 			}
 			switch v {
-			case 0:
+			case wall:
 				fmt.Printf("██")
-			case 1:
+			case open:
 				fmt.Printf("░░")
-			case 2:
+			case oxygenStation:
 				fmt.Printf("##")
-			case 3:
-				fmt.Printf("XX")
+			case oxygen:
+				fmt.Printf("..")
 			case 4:
 				fmt.Printf("<>")
 			}
