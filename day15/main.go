@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"time"
 )
 
+var gui bool
+
 func main() {
+	gui = os.Getenv("GUI") == "true"
 	start := time.Now()
 	p1 := part1()
 	fmt.Printf("part1: %-10v in %v\n", p1, time.Since(start))
@@ -99,7 +101,7 @@ func part2() int {
 		path := []pos{{0, 0}}
 
 		visit(&c, resultCh, m, path)
-		if os.Getenv("GUI") == "true" {
+		if gui {
 			drawSquare(m, drawSize)
 		}
 
@@ -172,6 +174,9 @@ func visit(c *computer.Computer, resultCh chan int, m map[pos]int, path []pos) {
 		if res == open {
 			dirToTry = append(dirToTry, dir)
 		}
+		if gui && res == oxygenStation {
+			drawSquare(m, drawSize)
+		}
 	}
 
 	for _, dir := range dirToTry {
@@ -211,9 +216,9 @@ func drawSquare(m map[pos]int, size int) {
 	draw(m, -size, size, -size, size)
 }
 func draw(m map[pos]int, minX, maxX, minY, maxY int) {
-	cmd := exec.Command("clear")
-	cmd.Stdout = os.Stdout
-	cmd.Run() //nolint:errcheck
+	//cmd := exec.Command("clear")
+	//cmd.Stdout = os.Stdout
+	//cmd.Run() //nolint:errcheck
 	for y := minY; y <= maxY; y++ {
 		for x := minX; x <= maxX; x++ {
 			v, ok := m[pos{x, y}]

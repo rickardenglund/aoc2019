@@ -1,11 +1,18 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"time"
 )
 
+var gui bool //nolint:unused
+
 func main() {
+	guiPtr := flag.Bool("gui", false, "Add --gui flag to enable graphics")
+	flag.Parse()
+	gui = *guiPtr
+
 	start := time.Now()
 	p1 := part1()
 	fmt.Printf("part1: %-10v in %v\n", p1, time.Since(start))
