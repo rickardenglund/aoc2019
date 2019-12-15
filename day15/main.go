@@ -99,7 +99,7 @@ func part2() int {
 		path := []pos{{0, 0}}
 
 		visit(&c, resultCh, m, path)
-		if true {
+		if os.Getenv("GUI") == "true" {
 			drawSquare(m, drawSize)
 		}
 
