@@ -115,31 +115,27 @@ func part2() int {
 func timeToFill(m map[pos]int) int {
 	gp := getGeneratorPos(m)
 
-	res := flow(m, gp, 0)
+	res := flow(m, []pos{gp})
 	return res
-
 }
 
-func flow(m map[pos]int, p pos, t int) int {
-	//draw(m, -drawSize, drawSize, -drawSize, drawSize)
-	//time.Sleep(200 * time.Millisecond)
-	neighbours := getOpenNeighbours(m, p)
-	if len(neighbours) == 0 {
-		return t
-	}
+func flow(m map[pos]int, toVisit []pos) int {
 
-	for i := range neighbours {
-		m[neighbours[i]] = oxygen
-	}
+	i := 0
+	for ; len(toVisit) > 0; i++ {
+		//time.Sleep(200 * time.Millisecond)
+		var newList []pos
+		for _, p := range toVisit {
+			m[p] = oxygen
+			newList = append(newList, p)
+		}
 
-	max := 0
-	for i := range neighbours {
-		r := flow(m, neighbours[i], t+1)
-		if r > max {
-			max = r
+		toVisit = []pos{}
+		for i := range newList {
+			toVisit = append(toVisit, getOpenNeighbours(m, newList[i])...)
 		}
 	}
-	return max
+	return i - 1
 }
 
 func getOpenNeighbours(m map[pos]int, p pos) (res []pos) {
@@ -211,7 +207,9 @@ func assert(expected interface{}, value interface{}) {
 	}
 
 }
-
+func drawSquare(m map[pos]int, size int) {
+	draw(m, -size, size, -size, size)
+}
 func draw(m map[pos]int, minX, maxX, minY, maxY int) {
 	cmd := exec.Command("clear")
 	cmd.Stdout = os.Stdout
