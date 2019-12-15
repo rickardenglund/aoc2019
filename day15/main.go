@@ -99,8 +99,8 @@ func part2() int {
 		path := []pos{{0, 0}}
 
 		visit(&c, resultCh, m, path)
-		if false {
-			draw(m, -drawSize, drawSize, -drawSize, drawSize)
+		if true {
+			drawSquare(m, drawSize)
 		}
 
 		// incorrect solution but correct answer
