@@ -121,8 +121,8 @@ func timeToFill(m map[pos]int) int {
 }
 
 func flow(m map[pos]int, p pos, t int) int {
-	draw(m, -drawSize, drawSize, -drawSize, drawSize)
-	time.Sleep(200 * time.Millisecond)
+	//draw(m, -drawSize, drawSize, -drawSize, drawSize)
+	//time.Sleep(200 * time.Millisecond)
 	neighbours := getOpenNeighbours(m, p)
 	if len(neighbours) == 0 {
 		return t
