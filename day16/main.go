@@ -41,7 +41,7 @@ func decode(input string) int {
 	ints := splitInput(sb.String())
 
 	for i := 0; i < 100; i++ {
-		//fmt.Printf("%v", i)
+		fmt.Printf("%v", i)
 		ints = fft(ints)
 
 	}
@@ -60,15 +60,10 @@ func splitInput(in string) []int {
 	}
 	return out
 }
-func genPattern(n int) []int {
+func getPattern(series, i int) int {
 	p := []int{0, 1, 0, -1}
-	out := []int{}
-	for _, val := range p {
-		for i := 0; i < n; i++ {
-			out = append(out, val)
-		}
-	}
-	return out
+
+	return p[(i/series)%len(p)]
 }
 func fft100(in string) int {
 	signal := splitInput(in)
@@ -90,23 +85,19 @@ func toInt(signal []int, n int) int {
 	return res
 }
 
-func fftOffset(input []int, offset int) int {
-	return do(genPattern(offset+1), input)
-}
-
 func fft(input []int) []int {
 	var out = make([]int, len(input))
 
 	for i := 0; i < len(input); i++ {
-		out[i] = do(genPattern(i+1), input)
+		out[i] = do(i+1, input)
 	}
 	return out
 }
 
-func do(pattern []int, input []int) int {
+func do(series int, input []int) int {
 	sum := 0
 	for i := 0; i < len(input); i++ {
-		sum += input[i] * pattern[(i+1)%len(pattern)]
+		sum += input[i] * getPattern(series, i+1)
 	}
 	return intmath.Abs(sum) % 10
 }

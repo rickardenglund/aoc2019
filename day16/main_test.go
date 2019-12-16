@@ -10,12 +10,21 @@ func Test_goRoutine(t *testing.T) {
 	assert.Equal(t, []int{1, 2, 3}, list)
 }
 func Test_getPattern(t *testing.T) {
-	assert.Equal(t, []int{0, 0, 1, 1, 0, 0, -1, -1}, genPattern(2))
+	assert.Equal(t, 0, getPattern(1, 0))
+	assert.Equal(t, 1, getPattern(1, 1))
+	assert.Equal(t, 0, getPattern(1, 2))
+	assert.Equal(t, -1, getPattern(1, 3))
+	assert.Equal(t, 0, getPattern(1, 4))
+
+	assert.Equal(t, 0, getPattern(2, 0))
+	assert.Equal(t, 0, getPattern(2, 1))
+	assert.Equal(t, 1, getPattern(2, 2))
+	assert.Equal(t, 1, getPattern(2, 3))
 }
 
 func Test_sum(t *testing.T) {
-	assert.Equal(t, 4, do([]int{0, 1, 0, -1}, []int{1, 2, 3, 4, 5, 6, 7, 8}))
-	assert.Equal(t, 8, do([]int{0, 0, 1, 1, 0, 0, -1, -1}, []int{1, 2, 3, 4, 5, 6, 7, 8}))
+	assert.Equal(t, 4, do(1, []int{1, 2, 3, 4, 5, 6, 7, 8}))
+	assert.Equal(t, 8, do(2, []int{1, 2, 3, 4, 5, 6, 7, 8}))
 }
 
 func Test_fft(t *testing.T) {
