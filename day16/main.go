@@ -17,38 +17,51 @@ func main() {
 	flag.Parse()
 	gui = *guiPtr
 
-	start := time.Now()
-	p1 := part1()
-	fmt.Printf("part1: %-10v in %v\n", p1, time.Since(start))
+	//start := time.Now()
+	//p1 := part1()
+	//fmt.Printf("part1: %-10v in %v\n", p1, time.Since(start))
 	start2 := time.Now()
 	p2 := part2()
 	fmt.Printf("part2: %-10v in %v\n", p2, time.Since(start2))
 }
 
 func part1() int {
-	return fft100(input)
+	return fft100(input, 0)
 }
 
 func part2() int {
-	return decode(input)
+
+	offset, _ := strconv.Atoi(input[0:7])
+
+	in := times10k(input)
+	res := decode(in, offset)
+	fmt.Printf("%v\n", res)
+	return res
 }
-func decode(input string) int {
+
+func decode(input string, offset int) int {
+
+	ints := splitInput(input)
+
+	for i := 0; i < 100; i++ {
+		start := time.Now()
+		ints = fft(ints, offset)
+
+		fmt.Printf("%v: %v,\n", i, time.Since(start))
+	}
+
+	fmt.Printf("\n%+v\n", ints[offset:offset+8])
+
+	return -1
+
+}
+
+func times10k(input string) string {
 	sb := strings.Builder{}
 	for i := 0; i < 10_000; i++ {
 		sb.WriteString(input)
 	}
-
-	ints := splitInput(sb.String())
-
-	for i := 0; i < 100; i++ {
-		fmt.Printf("%v", i)
-		ints = fft(ints)
-
-	}
-	fmt.Printf("\n%+v\n", ints)
-
-	return len(ints)
-
+	return sb.String()
 }
 
 func splitInput(in string) []int {
@@ -65,10 +78,10 @@ func getPattern(series, i int) int {
 
 	return p[(i/series)%len(p)]
 }
-func fft100(in string) int {
-	signal := splitInput(in)
+func fft100(in string, offset int) int {
+	signal := splitInput(in[offset:])
 	for i := 0; i < 100; i++ {
-		signal = fft(signal)
+		signal = fft(signal, offset)
 	}
 
 	res := toInt(signal, 8)
@@ -85,10 +98,10 @@ func toInt(signal []int, n int) int {
 	return res
 }
 
-func fft(input []int) []int {
+func fft(input []int, offset int) []int {
 	var out = make([]int, len(input))
 
-	for i := 0; i < len(input); i++ {
+	for i := offset; i < len(input); i++ {
 		out[i] = do(i+1, input)
 	}
 	return out
@@ -96,7 +109,7 @@ func fft(input []int) []int {
 
 func do(series int, input []int) int {
 	sum := 0
-	for i := 0; i < len(input); i++ {
+	for i := series - 1; i < len(input); i++ {
 		sum += input[i] * getPattern(series, i+1)
 	}
 	return intmath.Abs(sum) % 10
