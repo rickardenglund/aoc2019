@@ -34,12 +34,12 @@ func Test_getPattern(t *testing.T) {
 }
 
 func Test_sum(t *testing.T) {
-	assert.Equal(t, 4, do(0, []int{1, 2, 3, 4, 5, 6, 7, 8}, 0))
-	assert.Equal(t, 8, do(1, []int{1, 2, 3, 4, 5, 6, 7, 8}, 0))
-	assert.Equal(t, 2, do(2, []int{1, 2, 3, 4, 5, 6, 7, 8}, 0))
+	assert.Equal(t, 4, sum(0, []int{1, 2, 3, 4, 5, 6, 7, 8}))
+	assert.Equal(t, 8, sum(1, []int{1, 2, 3, 4, 5, 6, 7, 8}))
+	assert.Equal(t, 2, sum(2, []int{1, 2, 3, 4, 5, 6, 7, 8}))
 
-	assert.Equal(t, 2, do(2, []int{1, 2, 3, 4, 5, 6, 7, 8}, 2))
-	assert.Equal(t, 2, do(2, []int{1, 2, 3, 4, 5, 6, 7, 8}, 2))
+	assert.Equal(t, 2, sum(2, []int{1, 2, 3, 4, 5, 6, 7, 8}))
+	assert.Equal(t, 2, sum(2, []int{1, 2, 3, 4, 5, 6, 7, 8}))
 }
 
 func Test_fft(t *testing.T) {

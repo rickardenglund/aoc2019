@@ -33,8 +33,7 @@ func part1() interface{} {
 func part2() interface{} {
 	res := decode(input)
 	fmt.Printf("%v\n", res)
-	i, _ := strconv.Atoi(res)
-	return i
+	return res
 }
 
 func decode(input string) string {
@@ -64,15 +63,6 @@ func splitInput(in string) []int {
 	return out
 }
 
-var p = [4]int{0, 1, 0, -1}
-
-func getPattern(series, i int) int {
-
-	if series == 0 {
-		return p[(i+1)%len(p)]
-	}
-	return p[((i+1)/(series+1))%len(p)]
-}
 func fft100(in string, offset int) []int {
 	signal := splitInput(in)
 	for i := 0; i < 100; i++ {
@@ -84,7 +74,6 @@ func fft100(in string, offset int) []int {
 	return signal[offset : offset+8]
 
 }
-
 func toStr(signal []int) string {
 	str := ""
 	for i := 0; i < len(signal); i++ {
@@ -97,16 +86,26 @@ func fft(input []int, offset int) []int {
 	var out = make([]int, len(input))
 
 	for i := offset; i < len(input); i++ {
-		out[i] = do(i, input, i)
+		out[i] = sum(i, input)
 	}
 	return out
 }
 
-func do(series int, input []int, offset int) int {
+func sum(series int, input []int) int {
 	sum := 0
 	for i := series; i < len(input); i++ {
 		k := getPattern(series, i)
 		sum += input[i] * k
 	}
 	return intmath.Abs(sum) % 10
+}
+
+var p = [4]int{0, 1, 0, -1}
+
+func getPattern(series, i int) int {
+
+	if series == 0 {
+		return p[(i+1)%len(p)]
+	}
+	return p[((i+1)/(series+1))%len(p)]
 }
