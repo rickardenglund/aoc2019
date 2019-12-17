@@ -103,9 +103,11 @@ func sum(series int, input []int) int {
 var p = [4]int{0, 1, 0, -1}
 
 func getPattern(series, i int) int {
-
-	if series == 0 {
-		return p[(i+1)%len(p)]
+	if true {
+		return p[i%4]
 	}
-	return p[((i+1)/(series+1))%len(p)]
+	if series == 0 {
+		return p[(i+1)%4]
+	}
+	return p[((i+1)/(series+1))%4]
 }
