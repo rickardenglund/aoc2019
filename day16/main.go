@@ -17,43 +17,33 @@ func main() {
 	flag.Parse()
 	gui = *guiPtr
 
-	//start := time.Now()
-	//p1 := part1()
-	//fmt.Printf("part1: %-10v in %v\n", p1, time.Since(start))
+	start := time.Now()
+	p1 := part1()
+	fmt.Printf("part1: %v in %v\n", p1, time.Since(start))
+
 	start2 := time.Now()
 	p2 := part2()
 	fmt.Printf("part2: %-10v in %v\n", p2, time.Since(start2))
 }
 
-func part1() int {
-	return fft100(input, 0)
+func part1() interface{} {
+	return toStr(fft100(input, 0)[0:8])
 }
 
-func part2() int {
+func part2() interface{} {
+	res := decode(input)
+	fmt.Printf("%v\n", res)
+	i, _ := strconv.Atoi(res)
+	return i
+}
 
+func decode(input string) string {
+	input = times10k(input)
 	offset, _ := strconv.Atoi(input[0:7])
 
-	in := times10k(input)
-	res := decode(in, offset)
-	fmt.Printf("%v\n", res)
-	return res
-}
+	res := fft100(input, offset)
 
-func decode(input string, offset int) int {
-
-	ints := splitInput(input)
-
-	for i := 0; i < 100; i++ {
-		start := time.Now()
-		ints = fft(ints, offset)
-
-		fmt.Printf("%v: %v,\n", i, time.Since(start))
-	}
-
-	fmt.Printf("\n%+v\n", ints[offset:offset+8])
-
-	return -1
-
+	return toStr(res)
 }
 
 func times10k(input string) string {
@@ -73,44 +63,50 @@ func splitInput(in string) []int {
 	}
 	return out
 }
-func getPattern(series, i int) int {
-	p := []int{0, 1, 0, -1}
 
-	return p[(i/series)%len(p)]
+var p = [4]int{0, 1, 0, -1}
+
+func getPattern(series, i int) int {
+
+	if series == 0 {
+		return p[(i+1)%len(p)]
+	}
+	return p[((i+1)/(series+1))%len(p)]
 }
-func fft100(in string, offset int) int {
-	signal := splitInput(in[offset:])
+func fft100(in string, offset int) []int {
+	signal := splitInput(in)
 	for i := 0; i < 100; i++ {
+		start := time.Now()
 		signal = fft(signal, offset)
+		fmt.Printf("%v: %v\n", i, time.Since(start))
 	}
 
-	res := toInt(signal, 8)
-	return res
+	return signal[offset : offset+8]
 
 }
 
-func toInt(signal []int, n int) int {
+func toStr(signal []int) string {
 	str := ""
 	for i := 0; i < len(signal); i++ {
 		str += strconv.Itoa(signal[i])
 	}
-	res, _ := strconv.Atoi(str[:n])
-	return res
+	return str
 }
 
 func fft(input []int, offset int) []int {
 	var out = make([]int, len(input))
 
 	for i := offset; i < len(input); i++ {
-		out[i] = do(i+1, input)
+		out[i] = do(i, input, i)
 	}
 	return out
 }
 
-func do(series int, input []int) int {
+func do(series int, input []int, offset int) int {
 	sum := 0
-	for i := series - 1; i < len(input); i++ {
-		sum += input[i] * getPattern(series, i+1)
+	for i := series; i < len(input); i++ {
+		k := getPattern(series, i)
+		sum += input[i] * k
 	}
 	return intmath.Abs(sum) % 10
 }
