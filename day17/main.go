@@ -44,7 +44,7 @@ func part1() int {
 		y := 0
 		for x := 0; true; x++ {
 			data := <-c.Output
-			m[position.Pos{x, y}] = (data).Data
+			m[position.Pos{X: x, Y: y}] = (data).Data
 			if gui {
 				fmt.Printf("%c", data.Data)
 			}
@@ -55,20 +55,55 @@ func part1() int {
 		}
 	}()
 
-	time.Sleep(1 * time.Second)
+	time.Sleep(200 * time.Millisecond)
 	sum := getAlignment(m)
 
 	return sum
+}
+
+func part2() int {
+	program := computer.ReadMemory("day17/input.txt")
+	program[0] = 2
+	c := computer.NewComputer(program)
+	c.Output = make(chan computer.Msg)
+	c.IncreaseMemory(4048)
+	resCh := make(chan int)
+	go c.Run()
+
+	go func() {
+		// Do some manual processing to find the path
+		c.SendLine("A,B,A,B,C,B,C,A,C,C")
+
+		c.SendLine("R,12,L,10,L,10")
+		c.SendLine("L,6,L,12,R,12,L,4")
+		c.SendLine("L,12,R,12,L,6")
+		c.SendLine("n")
+	}()
+
+	go func() {
+		for {
+			msg := <-c.Output
+			if msg.Data < 255 {
+				if gui {
+					fmt.Printf("%c", msg.Data)
+				}
+			} else {
+				resCh <- msg.Data
+			}
+		}
+	}()
+
+	return <-resCh
 }
 
 func getAlignment(m map[position.Pos]int) int {
 	intersections := map[position.Pos]bool{}
 	for k := range m {
 		if m[k] == scaffold &&
-			m[position.Pos{k.X + 1, k.Y}] == scaffold &&
-			m[position.Pos{k.X - 1, k.Y}] == scaffold &&
-			m[position.Pos{k.X, k.Y + 1}] == scaffold &&
-			m[position.Pos{k.X, k.Y - 1}] == scaffold {
+			m[position.Pos{X: k.X + 1, Y: k.Y}] == scaffold &&
+			m[position.Pos{X: k.X - 1, Y: k.Y}] == scaffold &&
+			m[position.Pos{X: k.X, Y: k.Y + 1}] == scaffold &&
+			m[position.Pos{X: k.X, Y: k.Y - 1}] == scaffold {
 			intersections[k] = true
 		}
 	}
@@ -78,15 +113,11 @@ func getAlignment(m map[position.Pos]int) int {
 		sum += k.X * k.Y
 	}
 
-	fmt.Printf("Intersections: %v\n", intersections)
 	if gui {
+		fmt.Printf("Intersections: %v\n", intersections)
 		draw(m, 0, 40, 0, 75)
 	}
 	return sum
-}
-
-func part2() int {
-	return -1
 }
 func draw(m map[position.Pos]int, minX, maxX, minY, maxY int) {
 	//cmd := exec.Command("clear")
@@ -94,7 +125,7 @@ func draw(m map[position.Pos]int, minX, maxX, minY, maxY int) {
 	//cmd.Run() //nolint:errcheck
 	for y := minY; y <= maxY; y++ {
 		for x := minX; x <= maxX; x++ {
-			v, ok := m[position.Pos{x, y}]
+			v, ok := m[position.Pos{X: x, Y: y}]
 			if !ok {
 				fmt.Printf("  ")
 				continue

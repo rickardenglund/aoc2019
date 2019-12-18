@@ -25,6 +25,7 @@ func main() {
 }
 
 // 6719 to high
+// 6640 wrong
 func part1() interface{} {
 	m, pos := readMap(inputs.GetLine("day18/input.txt"))
 
@@ -43,6 +44,7 @@ func findKeysCost(m map[position.Pos]rune, startingPos position.Pos) int {
 	s := state{}
 	s.totalKeys = countKeys(m)
 	s.pos = startingPos
+	best = math.MaxInt32
 	cost, path := findCost(m, s, 0, []move{})
 	if gui {
 		printPath(path)
@@ -68,6 +70,9 @@ func printPath(path []move) {
 }
 
 func findCost(m map[position.Pos]rune, s state, acc int, path []move) (int, []move) {
+	if acc > best {
+		return math.MaxInt32, path
+	}
 	moves := getAvailableMoves(m, pos{s.pos, 0})
 
 	moves = filterMoves(path, moves)

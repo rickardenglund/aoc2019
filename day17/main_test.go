@@ -21,7 +21,7 @@ func Test_getAlignment(t *testing.T) {
 	rows := strings.Split(example, "\n")
 	for y := range rows {
 		for x := range rows[y] {
-			m[position.Pos{x, y}] = int(rows[y][x])
+			m[position.Pos{X: x, Y: y}] = int(rows[y][x])
 		}
 	}
 	assert.Equal(t, 76, getAlignment(m))
