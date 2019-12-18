@@ -5,6 +5,7 @@ import (
 	"aoc2019/position"
 	"flag"
 	"fmt"
+	"math"
 	"time"
 )
 
@@ -36,28 +37,104 @@ type state struct {
 }
 
 func findKeysCost(m map[position.Pos]rune, startingPos position.Pos) int {
-	cost := 0
 	s := state{keys: map[rune]bool{}}
 	s.pos = startingPos
+	cost, path := findCost(m, s, 0, []move{})
+	printPath(path)
+	return cost
+}
 
-	for {
-		moves := getAvailableMoves(m, pos{s.pos, 0})
+func printPath(path []move) {
+	for i := range path {
+		fmt.Printf("%c, ", path[i].val)
+	}
+	fmt.Println()
+}
 
-		moves = filterMoves(s, moves)
-		if len(moves) == 0 {
-			return cost
+func findCost(m map[position.Pos]rune, s state, acc int, path []move) (int, []move) {
+	moves := getAvailableMoves(m, pos{s.pos, 0})
+
+	moves = filterMoves(s, moves)
+	if len(moves) == 0 {
+		fmt.Printf("No more: ")
+		printPath(path)
+		return acc, path
+	}
+
+	paths := [][]move{}
+	for i := range moves {
+		newMap := copyMap(m)
+		newState := copyState(s)
+
+		moveTo(&newState, moves[i], newMap)
+
+		newPath := copyAppend(path, moves[i])
+		_, resPath := findCost(newMap, newState, acc+moves[i].steps, newPath)
+
+		paths = append(paths, resPath)
+	}
+
+	min := math.MaxInt64
+	maxlength := 0
+	var minPath []move
+	for i := range paths {
+		cost := pathCost(paths[i])
+		fmt.Printf("cost: %v: ", cost)
+		printPath(paths[i])
+		if len(paths[i]) > maxlength {
+			min = cost
+			minPath = paths[i]
+			continue
 		}
-
-		cost += moves[0].steps
-		s.pos = moves[0].p
-		if m[s.pos] >= 'a' && m[s.pos] <= 'z' {
-			s.keys[m[s.pos]] = true
-			m[s.pos] = '.'
-		}
-		if m[s.pos] >= 'A' && m[s.pos] <= 'Z' {
-			m[s.pos] = '.'
+		if cost < min {
+			min = cost
+			minPath = paths[i]
 		}
 	}
+
+	return min, minPath
+}
+
+func pathCost(moves []move) int {
+	sum := 0
+	for i := range moves {
+		sum += moves[i].steps
+	}
+	return sum
+}
+
+func copyAppend(path []move, m move) []move {
+	newPath := make([]move, len(path))
+	copy(newPath, path)
+	newPath = append(newPath, m)
+	return newPath
+}
+
+func moveTo(s *state, move move, m map[position.Pos]rune) {
+	s.pos = move.p
+	if m[s.pos] >= 'a' && m[s.pos] <= 'z' {
+		s.keys[m[s.pos]] = true
+		m[s.pos] = '.'
+	}
+	if m[s.pos] >= 'A' && m[s.pos] <= 'Z' {
+		m[s.pos] = '.'
+	}
+}
+
+func copyState(s state) state {
+	res := s
+	res.keys = map[rune]bool{}
+	for k, v := range res.keys {
+		res.keys[k] = v
+	}
+	return res
+}
+func copyMap(a map[position.Pos]rune) map[position.Pos]rune {
+	res := map[position.Pos]rune{}
+	for k, v := range a {
+		res[k] = v
+	}
+	return res
 }
 
 func filterMoves(s state, moves []move) []move {
