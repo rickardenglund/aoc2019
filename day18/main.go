@@ -24,7 +24,7 @@ func main() {
 	fmt.Printf("part2: %-10v in %v\n", p2, time.Since(start2))
 }
 
-// 8089 to high
+// 6719 to high
 func part1() interface{} {
 	m, pos := readMap(inputs.GetLine("day18/input.txt"))
 
@@ -32,16 +32,32 @@ func part1() interface{} {
 }
 
 type state struct {
-	keys map[rune]bool
-	pos  position.Pos
+	pos           position.Pos
+	collectedKeys int
+	totalKeys     int
 }
 
+var best = math.MaxInt64
+
 func findKeysCost(m map[position.Pos]rune, startingPos position.Pos) int {
-	s := state{keys: map[rune]bool{}}
+	s := state{}
+	s.totalKeys = countKeys(m)
 	s.pos = startingPos
 	cost, path := findCost(m, s, 0, []move{})
-	printPath(path)
+	if gui {
+		printPath(path)
+	}
 	return cost
+}
+
+func countKeys(m map[position.Pos]rune) int {
+	sum := 0
+	for _, v := range m {
+		if v >= 'a' && v <= 'z' {
+			sum++
+		}
+	}
+	return sum
 }
 
 func printPath(path []move) {
@@ -54,17 +70,22 @@ func printPath(path []move) {
 func findCost(m map[position.Pos]rune, s state, acc int, path []move) (int, []move) {
 	moves := getAvailableMoves(m, pos{s.pos, 0})
 
-	moves = filterMoves(s, moves)
-	if len(moves) == 0 {
-		fmt.Printf("No more: ")
-		printPath(path)
+	moves = filterMoves(path, moves)
+	if len(moves) == 0 || s.totalKeys == s.collectedKeys {
+		if acc < best {
+			best = acc
+		}
+		if gui {
+			fmt.Printf("No more:%-6v -  %-7v ", best, acc)
+			printPath(path)
+		}
 		return acc, path
 	}
 
-	paths := [][]move{}
+	var paths [][]move
 	for i := range moves {
 		newMap := copyMap(m)
-		newState := copyState(s)
+		newState := s
 
 		moveTo(&newState, moves[i], newMap)
 
@@ -75,17 +96,10 @@ func findCost(m map[position.Pos]rune, s state, acc int, path []move) (int, []mo
 	}
 
 	min := math.MaxInt64
-	maxlength := 0
+	//maxlength := 0
 	var minPath []move
 	for i := range paths {
 		cost := pathCost(paths[i])
-		fmt.Printf("cost: %v: ", cost)
-		printPath(paths[i])
-		if len(paths[i]) > maxlength {
-			min = cost
-			minPath = paths[i]
-			continue
-		}
 		if cost < min {
 			min = cost
 			minPath = paths[i]
@@ -113,7 +127,7 @@ func copyAppend(path []move, m move) []move {
 func moveTo(s *state, move move, m map[position.Pos]rune) {
 	s.pos = move.p
 	if m[s.pos] >= 'a' && m[s.pos] <= 'z' {
-		s.keys[m[s.pos]] = true
+		s.collectedKeys++
 		m[s.pos] = '.'
 	}
 	if m[s.pos] >= 'A' && m[s.pos] <= 'Z' {
@@ -121,14 +135,6 @@ func moveTo(s *state, move move, m map[position.Pos]rune) {
 	}
 }
 
-func copyState(s state) state {
-	res := s
-	res.keys = map[rune]bool{}
-	for k, v := range res.keys {
-		res.keys[k] = v
-	}
-	return res
-}
 func copyMap(a map[position.Pos]rune) map[position.Pos]rune {
 	res := map[position.Pos]rune{}
 	for k, v := range a {
@@ -137,12 +143,11 @@ func copyMap(a map[position.Pos]rune) map[position.Pos]rune {
 	return res
 }
 
-func filterMoves(s state, moves []move) []move {
-	filtered := []move{}
+func filterMoves(path []move, moves []move) []move {
+	var filtered []move
 	for i := range moves {
-		if moves[i].val <= 'Z' {
-
-			if s.keys[moves[i].val+32] {
+		if moves[i].val <= 'Z' && moves[i].val >= 'A' {
+			if hasKey(path, moves[i].val) {
 				filtered = append(filtered, moves[i])
 			}
 		} else {
@@ -152,6 +157,14 @@ func filterMoves(s state, moves []move) []move {
 	return filtered
 }
 
+func hasKey(path []move, door rune) bool {
+	for i := range path {
+		if path[i].val-32 == door {
+			return true
+		}
+	}
+	return false
+}
 func readMap(str string) (map[position.Pos]rune, position.Pos) {
 	m := map[position.Pos]rune{}
 	y := 0
@@ -214,7 +227,6 @@ func getAvailableMoves(m map[position.Pos]rune, cur pos) []move {
 			cur = k
 			break
 		}
-
 	}
 
 	return moves

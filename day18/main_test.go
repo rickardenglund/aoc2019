@@ -29,8 +29,15 @@ const small = `#########
 
 const mini = `######
 #a..@.b#
-######A#`
+######A#
+######c#
+########`
 
+const mini2 = `######
+#a..@.b#
+######A#
+######.#
+########`
 const mediumx = `########################
 #f.D.E.e.C.@.........c.#
 ######################.#
@@ -49,6 +56,23 @@ const medium2 = `########################
 #.....@.a.B.c.d.A.e.F.g#
 ########################`
 
+const medium3 = `#################
+#i.G..c...e..H.p#
+########.########
+#j.A..b...f..D.o#
+########@########
+#k.E..a...g..B.n#
+########.########
+#l.F..d...h..C.m#
+#################`
+
+const medium4 = `########################
+#@..............ac.GI.b#
+###d#e#f################
+###A#B#C################
+###g#h#i################
+########################`
+
 func Test_getAvailableMoves(t *testing.T) {
 	m, playerPos := readMap(small)
 	res := []move{
@@ -65,36 +89,52 @@ func Test_getAvailableMoves(t *testing.T) {
 }
 
 func Test_filterMoves(t *testing.T) {
-	s := state{
-		keys: nil,
-		pos:  position.Pos{},
-	}
+	s := []move{}
 	avMoves := []move{{val: 'a', steps: 2}, {val: 'A', steps: 2}}
 	assert.Equal(t, []move{{
 		val:   'a',
 		steps: 2,
 	}}, filterMoves(s, avMoves))
 
-	s = state{
-		keys: map[rune]bool{'a': true},
-		pos:  position.Pos{},
-	}
+	s = []move{{
+		val: 'a',
+	}}
 	avMoves = []move{{val: 'b', steps: 2}, {val: 'A', steps: 2}}
 	assert.Equal(t, []move{{val: 'b', steps: 2}, {val: 'A', steps: 2}}, filterMoves(s, avMoves))
 }
 
 func Test_findCost(t *testing.T) {
-	//m, playerPos := readMap(small)
-	//assert.Equal(t, 8, findKeysCost(m, playerPos))
+	m, playerPos := readMap(small)
+	assert.Equal(t, 8, findKeysCost(m, playerPos))
+}
 
+func Test_findCost22(t *testing.T) {
+	m, playerPos := readMap(mini2)
+	assert.Equal(t, 7, findKeysCost(m, playerPos))
+}
+func Test_findCost2(t *testing.T) {
 	m, playerPos := readMap(mini)
-	assert.Equal(t, 9, findKeysCost(m, playerPos))
+	assert.Equal(t, 10, findKeysCost(m, playerPos))
+}
 
-	//m, playerPos = readMap(medium)
-	//assert.Equal(t, 86, findKeysCost(m, playerPos))
-	//
-	//m, playerPos = readMap(medium2)
-	//assert.Equal(t, 132, findKeysCost(m, playerPos))
+func Test_findCost3(t *testing.T) {
+	m, playerPos := readMap(medium)
+	assert.Equal(t, 86, findKeysCost(m, playerPos))
+}
+
+func Test_findCost4(t *testing.T) {
+	m, playerPos := readMap(medium2)
+	assert.Equal(t, 132, findKeysCost(m, playerPos))
+}
+func Test_findCost5(t *testing.T) {
+	gui = true
+	m, playerPos := readMap(medium3)
+	assert.Equal(t, 136, findKeysCost(m, playerPos))
+}
+
+func Test_findCost6(t *testing.T) {
+	m, playerPos := readMap(medium4)
+	assert.Equal(t, 81, findKeysCost(m, playerPos))
 }
 
 func Test_copyState(t *testing.T) {
