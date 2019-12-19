@@ -25,7 +25,7 @@ func main() {
 }
 
 // 6719 to high
-// 6640 wrong
+// 6640, 6632 wrong
 func part1() interface{} {
 	m, pos := readMap(inputs.GetLine("day18/input.txt"))
 

@@ -21,10 +21,10 @@ func main() {
 	fmt.Printf("part2: %-10v in %v\n", p2, time.Since(start2))
 }
 
-func part1() int {
-	return -1
+func part1() interface{} {
+	return "-"
 }
 
-func part2() int {
-	return -1
+func part2() interface{} {
+	return "-"
 }
