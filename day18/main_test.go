@@ -92,11 +92,11 @@ func Test_getTree(t *testing.T) {
 	m, start := readMap(small)
 	tree := toTree(m, start)
 	assert.Equal(t, position.Pos{X: 5, Y: 1}, start)
-	assert.Contains(t, tree[start], pos{p: position.Pos{X: 7, Y: 1}, dist: 2})
-	assert.Contains(t, tree[start], pos{p: position.Pos{X: 3, Y: 1}, dist: 2})
+	assert.Contains(t, tree[start], move{val: 'a', p: position.Pos{X: 7, Y: 1}, steps: 2})
+	assert.Contains(t, tree[start], move{val: 'A', p: position.Pos{X: 3, Y: 1}, steps: 2})
 
-	assert.Contains(t, tree[position.Pos{X: 3, Y: 1}], pos{p: position.Pos{X: 7, Y: 1}, dist: 4})
-	assert.Contains(t, tree[position.Pos{X: 3, Y: 1}], pos{p: position.Pos{X: 1, Y: 1}, dist: 2})
+	assert.Contains(t, tree[position.Pos{X: 3, Y: 1}], move{val: 'b', p: position.Pos{X: 1, Y: 1}, steps: 2})
+	assert.Contains(t, tree[position.Pos{X: 3, Y: 1}], move{val: 'a', p: position.Pos{X: 7, Y: 1}, steps: 4})
 }
 
 func Test_filterMoves(t *testing.T) {
