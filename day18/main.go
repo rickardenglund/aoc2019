@@ -28,9 +28,114 @@ func main() {
 // 6640, 6632 wrong
 func part1() interface{} {
 	m, pos := readMap(inputs.GetLine("day18/input.txt"))
-	//tree := toTree(m, pos)
+	return findCostMap(m, pos)
+}
 
-	return findKeysCost(m, pos)
+func findCostMap(m map[position.Pos]rune, start position.Pos) int {
+	tree := toTree(m, start)
+	best = math.MaxInt32
+
+	s := state{
+		pos:           start,
+		collectedKeys: make(map[rune]bool),
+		totalKeys:     countKeys(m),
+		visited:       make(map[position.Pos]bool),
+		path:          []move{},
+	}
+
+	res := findCost2(tree, &s)
+	printPath(s.path)
+	return res
+}
+func findCost2(tree map[position.Pos][]move, s *state) int {
+	possibleMoves := filter(tree, s)
+
+	if s.cost > best {
+		//fmt.Printf("too bad: ")
+		//printPath(s.path)
+		return math.MaxInt32
+	}
+
+	if len(possibleMoves) == 0 || len(s.collectedKeys) == s.totalKeys {
+		if gui {
+			fmt.Printf("cost: %v - ", s.cost)
+			printPath(s.path)
+		}
+		if best > s.cost {
+			best = s.cost
+		}
+		return s.cost
+	}
+
+	minCost := math.MaxInt32
+	for i := range possibleMoves {
+		newState := copyState(s)
+		doMove(newState, possibleMoves[i])
+		cost := findCost2(tree, newState)
+		if cost < minCost {
+			minCost = cost
+		}
+	}
+	return minCost
+}
+
+func doMove(s *state, m move) {
+	s.pos = m.p
+	s.cost += m.steps
+	s.visited[s.pos] = true
+	if isLower(m.val) {
+		s.collectedKeys[m.val] = true
+	}
+	s.path = append(s.path, m)
+}
+
+func isLower(r rune) bool {
+	return r >= 'a' && r <= 'z'
+}
+func isUpper(r rune) bool {
+	return r >= 'A' && r <= 'Z'
+}
+
+func filter(tree map[position.Pos][]move, s *state) []move {
+	checked := make(map[position.Pos]bool)
+	cur := s.pos
+
+	return find(tree, s, checked, cur, 0)
+}
+
+func find(tree map[position.Pos][]move, s *state, checked map[position.Pos]bool, cur position.Pos, dist int) []move {
+	var res []move
+	checked[cur] = true
+	moves := tree[cur]
+	var alreadyVisited []move
+	for m := range moves {
+		if s.visited[moves[m].p] {
+			if !checked[moves[m].p] {
+				alreadyVisited = append(alreadyVisited, moves[m])
+			}
+		} else if isUpper(moves[m].val) {
+			if s.collectedKeys[moves[m].val+32] {
+				res = append(res, addDist(moves[m], dist))
+			}
+		} else {
+			res = append(res, addDist(moves[m], dist))
+		}
+
+		checked[moves[m].p] = true
+	}
+
+	for i := range alreadyVisited {
+		res = append(res, find(tree, s, checked, alreadyVisited[i].p, dist+alreadyVisited[i].steps)...)
+	}
+	return res
+}
+
+func addDist(m move, dist int) move {
+	return move{
+		val:   m.val,
+		steps: m.steps + dist,
+		p:     m.p,
+	}
 }
 
 func toTree(m map[position.Pos]rune, start position.Pos) map[position.Pos][]move {
@@ -54,23 +159,14 @@ func toTree(m map[position.Pos]rune, start position.Pos) map[position.Pos][]move
 
 type state struct {
 	pos           position.Pos
-	collectedKeys int
+	collectedKeys map[rune]bool
 	totalKeys     int
+	cost          int
+	visited       map[position.Pos]bool
+	path          []move
 }
 
 var best = math.MaxInt64
-
-func findKeysCost(m map[position.Pos]rune, startingPos position.Pos) int {
-	s := state{}
-	s.totalKeys = countKeys(m)
-	s.pos = startingPos
-	best = math.MaxInt32
-	cost, path := findCost(m, s, 0, []move{})
-	if gui {
-		printPath(path)
-	}
-	return cost
-}
 
 func countKeys(m map[position.Pos]rune) int {
 	sum := 0
@@ -89,79 +185,42 @@ func printPath(path []move) {
 	fmt.Println()
 }
 
-func findCost(m map[position.Pos]rune, s state, acc int, path []move) (int, []move) {
-	if acc > best {
-		return math.MaxInt32, path
-	}
-	moves := getAvailableMoves(m, pos{s.pos, 0})
-
-	moves = filterMoves(path, moves)
-	if len(moves) == 0 || s.totalKeys == s.collectedKeys {
-		if acc < best {
-			best = acc
-		}
-		if gui {
-			fmt.Printf("No more:%-6v -  %-7v ", best, acc)
-			printPath(path)
-		}
-		return acc, path
-	}
-
-	var paths [][]move
-	for i := range moves {
-		newMap := copyMap(m)
-		newState := s
-
-		moveTo(&newState, moves[i], newMap)
-
-		newPath := copyAppend(path, moves[i])
-		_, resPath := findCost(newMap, newState, acc+moves[i].steps, newPath)
-
-		paths = append(paths, resPath)
-	}
-
-	min := math.MaxInt64
-	//maxlength := 0
-	var minPath []move
-	for i := range paths {
-		cost := pathCost(paths[i])
-		if cost < min {
-			min = cost
-			minPath = paths[i]
-		}
-	}
-
-	return min, minPath
-}
-
-func pathCost(moves []move) int {
-	sum := 0
-	for i := range moves {
-		sum += moves[i].steps
-	}
-	return sum
-}
-
-func copyAppend(path []move, m move) []move {
+func CopyAppend(path []move, m move) []move {
 	newPath := make([]move, len(path))
 	copy(newPath, path)
 	newPath = append(newPath, m)
 	return newPath
 }
 
-func moveTo(s *state, move move, m map[position.Pos]rune) {
-	s.pos = move.p
-	if m[s.pos] >= 'a' && m[s.pos] <= 'z' {
-		s.collectedKeys++
-		m[s.pos] = '.'
+func copyState(s *state) *state {
+	res := state{
+		pos:           s.pos,
+		collectedKeys: CopyMapRune(s.collectedKeys),
+		totalKeys:     s.totalKeys,
+		cost:          s.cost,
+		visited:       CopyMap(s.visited),
+		path:          CopyArray(s.path),
 	}
-	if m[s.pos] >= 'A' && m[s.pos] <= 'Z' {
-		m[s.pos] = '.'
-	}
+	return &res
 }
 
-func copyMap(a map[position.Pos]rune) map[position.Pos]rune {
-	res := map[position.Pos]rune{}
+func CopyArray(path []move) []move {
+	res := make([]move, len(path))
+	for i := range path {
+		res[i] = path[i]
+	}
+	return res
+}
+
+func CopyMapRune(a map[rune]bool) map[rune]bool {
+	res := map[rune]bool{}
+	for k, v := range a {
+		res[k] = v
+	}
+	return res
+}
+func CopyMap(a map[position.Pos]bool) map[position.Pos]bool {
+	res := map[position.Pos]bool{}
 	for k, v := range a {
 		res[k] = v
 	}
