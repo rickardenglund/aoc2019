@@ -185,12 +185,12 @@ func printPath(path []move) {
 	fmt.Println()
 }
 
-func CopyAppend(path []move, m move) []move {
-	newPath := make([]move, len(path))
-	copy(newPath, path)
-	newPath = append(newPath, m)
-	return newPath
-}
+//func CopyAppend(path []move, m move) []move {
+//	newPath := make([]move, len(path))
+//	copy(newPath, path)
+//	newPath = append(newPath, m)
+//	return newPath
+//}
 
 func copyState(s *state) *state {
 	res := state{
@@ -205,10 +205,8 @@ func copyState(s *state) *state {
 }
 
 func CopyArray(path []move) []move {
-	res := make([]move, len(path))
-	for i := range path {
-		res[i] = path[i]
-	}
+	res := make([]move, len(path)+1)
+	copy(res, path)
 	return res
 }
 
@@ -227,28 +225,6 @@ func CopyMap(a map[position.Pos]bool) map[position.Pos]bool {
 	return res
 }
 
-func filterMoves(path []move, moves []move) []move {
-	var filtered []move
-	for i := range moves {
-		if moves[i].val <= 'Z' && moves[i].val >= 'A' {
-			if hasKey(path, moves[i].val) {
-				filtered = append(filtered, moves[i])
-			}
-		} else {
-			filtered = append(filtered, moves[i])
-		}
-	}
-	return filtered
-}
-
-func hasKey(path []move, door rune) bool {
-	for i := range path {
-		if path[i].val-32 == door {
-			return true
-		}
-	}
-	return false
-}
 func readMap(str string) (map[position.Pos]rune, position.Pos) {
 	m := map[position.Pos]rune{}
 	y := 0

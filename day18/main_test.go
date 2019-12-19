@@ -69,20 +69,20 @@ func Test_getTree(t *testing.T) {
 	assert.Contains(t, tree[position.Pos{X: 3, Y: 1}], move{val: 'a', p: position.Pos{X: 7, Y: 1}, steps: 4})
 }
 
-func Test_filterMoves(t *testing.T) {
-	s := []move{}
-	avMoves := []move{{val: 'a', steps: 2}, {val: 'A', steps: 2}}
-	assert.Equal(t, []move{{
-		val:   'a',
-		steps: 2,
-	}}, filterMoves(s, avMoves))
-
-	s = []move{{
-		val: 'a',
-	}}
-	avMoves = []move{{val: 'b', steps: 2}, {val: 'A', steps: 2}}
-	assert.Equal(t, []move{{val: 'b', steps: 2}, {val: 'A', steps: 2}}, filterMoves(s, avMoves))
-}
+//func Test_filterMoves(t *testing.T) {
+//	s := []move{}
+//	avMoves := []move{{val: 'a', steps: 2}, {val: 'A', steps: 2}}
+//	assert.Equal(t, []move{{
+//		val:   'a',
+//		steps: 2,
+//	}}, filterMoves(s, avMoves))
+//
+//	s = []move{{
+//		val: 'a',
+//	}}
+//	avMoves = []move{{val: 'b', steps: 2}, {val: 'A', steps: 2}}
+//	assert.Equal(t, []move{{val: 'b', steps: 2}, {val: 'A', steps: 2}}, filterMoves(s, avMoves))
+//}
 
 const small = `#########
 #b.A.@.a#
@@ -106,7 +106,7 @@ const mini = `######
 
 func Test_find(t *testing.T) {
 	s := state{
-		pos:           position.Pos{1, 1},
+		pos:           position.Pos{X: 1, Y: 1},
 		collectedKeys: map[rune]bool{},
 		totalKeys:     1,
 		cost:          0,
@@ -114,10 +114,10 @@ func Test_find(t *testing.T) {
 		path:          nil,
 	}
 	tree := map[position.Pos][]move{
-		{1, 1}: {{'a', 2, position.Pos{2, 2}}},
+		{X: 1, Y: 1}: {{'a', 2, position.Pos{X: 2, Y: 2}}},
 	}
 	moves := filter(tree, &s)
-	assert.Contains(t, moves, move{'a', 2, position.Pos{2, 2}})
+	assert.Contains(t, moves, move{'a', 2, position.Pos{X: 2, Y: 2}})
 }
 
 func Test_findCost2B(t *testing.T) {
