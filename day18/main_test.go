@@ -38,7 +38,7 @@ const mini2 = `######
 ######A#
 ######.#
 ########`
-const mediumx = `########################
+const mediumX = `########################
 #f.D.E.e.C.@.........c.#
 ######################.#
 #d.....................#
@@ -81,11 +81,22 @@ func Test_getAvailableMoves(t *testing.T) {
 
 	assert.Equal(t, res, getAvailableMoves(m, pos{playerPos, 0}))
 
-	m, playerPos = readMap(mediumx)
+	m, playerPos = readMap(mediumX)
 	res = []move{
 		{val: 'C', steps: 2, p: position.Pos{X: 9, Y: 1}},
 		{val: 'c', steps: 10, p: position.Pos{X: 21, Y: 1}}}
 	assert.Equal(t, res, getAvailableMoves(m, pos{playerPos, 0}))
+}
+
+func Test_getTree(t *testing.T) {
+	m, start := readMap(small)
+	tree := toTree(m, start)
+	assert.Equal(t, position.Pos{X: 5, Y: 1}, start)
+	assert.Contains(t, tree[start], pos{p: position.Pos{X: 7, Y: 1}, dist: 2})
+	assert.Contains(t, tree[start], pos{p: position.Pos{X: 3, Y: 1}, dist: 2})
+
+	assert.Contains(t, tree[position.Pos{X: 3, Y: 1}], pos{p: position.Pos{X: 7, Y: 1}, dist: 4})
+	assert.Contains(t, tree[position.Pos{X: 3, Y: 1}], pos{p: position.Pos{X: 1, Y: 1}, dist: 2})
 }
 
 func Test_filterMoves(t *testing.T) {

@@ -28,8 +28,28 @@ func main() {
 // 6640, 6632 wrong
 func part1() interface{} {
 	m, pos := readMap(inputs.GetLine("day18/input.txt"))
+	tree := toTree(m, pos)
 
 	return findKeysCost(m, pos)
+}
+
+func toTree(m map[position.Pos]rune, start position.Pos) map[position.Pos][]pos {
+	tree := map[position.Pos][]pos{}
+	for k, v := range m {
+		if v >= 'A' && v <= 'z' || v == '@' {
+			neighbours := getAvailableMoves(m, pos{p: k, dist: 0})
+			for n := range neighbours {
+				tree[k] = append(tree[k], pos{neighbours[n].p, neighbours[n].steps})
+			}
+		}
+	}
+
+	neighbours := getAvailableMoves(m, pos{p: start, dist: 0})
+	for n := range neighbours {
+		tree[start] = append(tree[start], pos{neighbours[n].p, neighbours[n].steps})
+	}
+	return tree
+
 }
 
 type state struct {
