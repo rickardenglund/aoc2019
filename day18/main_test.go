@@ -24,12 +24,6 @@ func Test_readMap(t *testing.T) {
 	assert.Equal(t, '.', m[position.Pos{X: 2, Y: 1}])
 }
 
-const mini2 = `######
-#a..@.b#
-######A#
-######.#
-########`
-
 const mediumX = `########################
 #f.D.E.e.C.@.........c.#
 ######################.#
@@ -80,6 +74,12 @@ func Test_findCostB(t *testing.T) {
 	assert.Equal(t, 8, findCostMap(m, playerPos))
 }
 
+const mini2 = `######
+#a..@.b#
+######A#
+######.#
+########`
+
 func Test_findCost22B(t *testing.T) {
 	m, playerPos := readMap(mini2)
 	assert.Equal(t, 7, findCostMap(m, playerPos))
@@ -129,7 +129,7 @@ func Test_findCost4B(t *testing.T) {
 }
 
 const medium3 = `#################
-#i.G..c...e..H.gp#
+#i.G..c...e..H.p#
 ########.########
 #j.A..b...f..D.o#
 ########@########
@@ -139,7 +139,6 @@ const medium3 = `#################
 #################`
 
 func Test_findCost5B(t *testing.T) {
-	gui = true
 	m, playerPos := readMap(medium3)
 	assert.Equal(t, 136, findCostMap(m, playerPos))
 }

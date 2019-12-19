@@ -3,9 +3,9 @@ package main
 import (
 	"aoc2019/inputs"
 	"aoc2019/position"
+	"container/heap"
 	"flag"
 	"fmt"
-	"math"
 	"time"
 )
 
@@ -33,7 +33,6 @@ func part1() interface{} {
 
 func findCostMap(m map[position.Pos]rune, start position.Pos) int {
 	tree := toTree(m, start)
-	best = math.MaxInt32
 
 	s := state{
 		pos:           start,
@@ -42,41 +41,44 @@ func findCostMap(m map[position.Pos]rune, start position.Pos) int {
 		visited:       make([]position.Pos, 0),
 		path:          []move{},
 	}
+	pq = make(PriorityQueue, 0)
+	heap.Init(&pq)
 
 	res := findCost(tree, &s)
 	return res
 }
-func findCost(tree map[position.Pos][]move, s *state) int {
-	possibleMoves := filter(tree, s)
 
-	if s.cost > best {
-		return math.MaxInt32
-	}
+var pq PriorityQueue
 
-	if len(possibleMoves) == 0 || len(s.collectedKeys) == s.totalKeys {
-		if gui {
-			fmt.Printf("cost: %v \n", s.cost)
-			printPath(s.path)
-		}
-		if best > s.cost {
-			best = s.cost
-		}
-		return s.cost
-	}
-
-	minCost := math.MaxInt32
-
-	for i := range possibleMoves {
-		newState := copyState(s)
-		doMove(newState, possibleMoves[i])
-
-		//newTree := removeNode(tree, possibleMoves[i].target)
-		cost := findCost(tree, newState)
-		if cost < minCost {
-			minCost = cost
+func findCost(tree map[position.Pos][]move, startingState *state) int {
+	heap.Push(&pq, &Item{
+		value:    startingState,
+		priority: calcPrio(startingState),
+	})
+	for len(pq) > 0 {
+		item := heap.Pop(&pq).(*Item)
+		workingState := item.value
+		possibleMoves := filter(tree, workingState)
+		for i := range possibleMoves {
+			ns := copyState(workingState)
+			doMove(ns, possibleMoves[i])
+			if len(ns.collectedKeys) == ns.totalKeys {
+				if gui {
+					printPath(ns.path)
+				}
+				return ns.cost
+			}
+			heap.Push(&pq, &Item{
+				value:    ns,
+				priority: calcPrio(ns),
+			})
 		}
 	}
-	return minCost
+	return -1
+}
+
+func calcPrio(ns *state) int {
+	return ns.cost + ns.totalKeys - len(ns.collectedKeys)
 }
 
 func removeNode(tree map[position.Pos][]move, remove position.Pos) map[position.Pos][]move {
@@ -225,8 +227,6 @@ type state struct {
 	visited       []position.Pos
 	path          []move
 }
-
-var best = math.MaxInt64
 
 func countKeys(m map[position.Pos]rune) int {
 	sum := 0
@@ -395,3 +395,49 @@ func printMoves(v []move) {
 	}
 	fmt.Printf("\n")
 }
+
+// An Item is something we manage in a priority queue.
+type Item struct {
+	value    *state // The value of the item; arbitrary.
+	priority int    // The priority of the item in the queue.
+	// The index is needed by update and is maintained by the heap.Interface methods.
+	index int // The index of the item in the heap.
+}
+
+// A PriorityQueue implements heap.Interface and holds Items.
+type PriorityQueue []*Item
+
+func (pq PriorityQueue) Len() int { return len(pq) }
+
+func (pq PriorityQueue) Less(i, j int) bool {
+	return pq[i].priority < pq[j].priority
+}
+
+func (pq PriorityQueue) Swap(i, j int) {
+	pq[i], pq[j] = pq[j], pq[i]
+	pq[i].index = i
+	pq[j].index = j
+}
+func (pq *PriorityQueue) Push(x interface{}) {
+	n := len(*pq)
+	item := x.(*Item)
+	item.index = n
+	*pq = append(*pq, item)
+}
+
+func (pq *PriorityQueue) Pop() interface{} {
+	old := *pq
+	n := len(old)
+	item := old[n-1]
+	old[n-1] = nil  // avoid memory leak
+	item.index = -1 // for safety
+	*pq = old[0 : n-1]
+	return item
+}
+
+//// update modifies the priority and value of an Item in the queue.
+//func (pq *PriorityQueue) update(item *Item, value *state, priority int) {
+//	item.value = value
+//	item.priority = priority
+//	heap.Fix(pq, item.index)
+//}
