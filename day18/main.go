@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"math"
+	"sort"
 	"time"
 )
 
@@ -40,14 +41,13 @@ func findCostMap(m map[position.Pos]rune, start position.Pos) int {
 		collectedKeys: make(map[rune]bool),
 		totalKeys:     countKeys(m),
 		visited:       make(map[position.Pos]bool),
-		path:          []move{},
+		//path:          []move{},
 	}
 
-	res := findCost2(tree, &s)
-	printPath(s.path)
+	res := findCost(tree, &s)
 	return res
 }
-func findCost2(tree map[position.Pos][]move, s *state) int {
+func findCost(tree map[position.Pos][]move, s *state) int {
 	possibleMoves := filter(tree, s)
 
 	if s.cost > best {
@@ -59,7 +59,7 @@ func findCost2(tree map[position.Pos][]move, s *state) int {
 	if len(possibleMoves) == 0 || len(s.collectedKeys) == s.totalKeys {
 		if gui {
 			fmt.Printf("cost: %v - ", s.cost)
-			printPath(s.path)
+			//printPath(s.path)
 		}
 		if best > s.cost {
 			best = s.cost
@@ -68,10 +68,15 @@ func findCost2(tree map[position.Pos][]move, s *state) int {
 	}
 
 	minCost := math.MaxInt32
+
+	less := func(a, b int) bool {
+		return possibleMoves[a].val < possibleMoves[b].val
+	}
+	sort.Slice(possibleMoves, less)
 	for i := range possibleMoves {
 		newState := copyState(s)
 		doMove(newState, possibleMoves[i])
-		cost := findCost2(tree, newState)
+		cost := findCost(tree, newState)
 		if cost < minCost {
 			minCost = cost
 		}
@@ -86,7 +91,7 @@ func doMove(s *state, m move) {
 	if isLower(m.val) {
 		s.collectedKeys[m.val] = true
 	}
-	s.path = append(s.path, m)
+	//s.path = append(s.path, m)
 }
 
 func isLower(r rune) bool {
@@ -163,7 +168,7 @@ type state struct {
 	totalKeys     int
 	cost          int
 	visited       map[position.Pos]bool
-	path          []move
+	//path          []move
 }
 
 var best = math.MaxInt64
@@ -182,7 +187,7 @@ func printPath(path []move) {
 	for i := range path {
 		fmt.Printf("%c, ", path[i].val)
 	}
-	fmt.Println()
+	fmt.Printf("\n")
 }
 
 //func CopyAppend(path []move, m move) []move {
@@ -199,13 +204,13 @@ func copyState(s *state) *state {
 		totalKeys:     s.totalKeys,
 		cost:          s.cost,
 		visited:       CopyMap(s.visited),
-		path:          CopyArray(s.path),
+		//path:          CopyArray(s.path),
 	}
 	return &res
 }
 
 func CopyArray(path []move) []move {
-	res := make([]move, len(path)+1)
+	res := make([]move, len(path))
 	copy(res, path)
 	return res
 }
@@ -245,6 +250,9 @@ func readMap(str string) (map[position.Pos]rune, position.Pos) {
 		} else {
 			x++
 		}
+	}
+	if gui {
+		fmt.Printf("\n")
 	}
 	m[playerPos] = '.'
 	return m, playerPos

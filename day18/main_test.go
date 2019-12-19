@@ -111,7 +111,7 @@ func Test_find(t *testing.T) {
 		totalKeys:     1,
 		cost:          0,
 		visited:       nil,
-		path:          nil,
+		//path:          nil,
 	}
 	tree := map[position.Pos][]move{
 		{X: 1, Y: 1}: {{'a', 2, position.Pos{X: 2, Y: 2}}},
@@ -121,6 +121,7 @@ func Test_find(t *testing.T) {
 }
 
 func Test_findCost2B(t *testing.T) {
+	gui = true
 	m, playerPos := readMap(mini)
 	assert.Equal(t, 10, findCostMap(m, playerPos))
 }
@@ -152,6 +153,7 @@ const medium3 = `#################
 #################`
 
 func Test_findCost5B(t *testing.T) {
+	gui = true
 	m, playerPos := readMap(medium3)
 	assert.Equal(t, 136, findCostMap(m, playerPos))
 }
