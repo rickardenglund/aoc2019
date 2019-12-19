@@ -59,10 +59,10 @@ func part2() interface{} {
 		}
 	}
 	shipSize := 100
-	return part2Res(shipSize)
+	return part2Solve(shipSize)
 }
 
-func part2Res(shipSize int) int {
+func part2Solve(shipSize int) int {
 	for y := 0; ; y++ {
 		if isOk(y, shipSize) {
 			res := getRow(y + shipSize - 1)
