@@ -40,17 +40,19 @@ func findCostMap(m map[position.Pos]rune, start position.Pos) int {
 		totalKeys:     countKeys(m),
 		visited:       make([]position.Pos, 0),
 		path:          []move{},
+		tree:          tree,
 	}
 	pq = make(PriorityQueue, 0)
 	heap.Init(&pq)
 
-	res := findCost(tree, &s)
+	res := findCost(&s)
 	return res
 }
 
 var pq PriorityQueue
 
-func findCost(tree map[position.Pos][]move, startingState *state) int {
+func findCost(startingState *state) int {
+	longestPath := []move{}
 	heap.Push(&pq, &Item{
 		value:    startingState,
 		priority: calcPrio(startingState),
@@ -58,10 +60,17 @@ func findCost(tree map[position.Pos][]move, startingState *state) int {
 	for len(pq) > 0 {
 		item := heap.Pop(&pq).(*Item)
 		workingState := item.value
-		possibleMoves := filter(tree, workingState)
+		possibleMoves := filter(workingState.tree, workingState)
 		for i := range possibleMoves {
 			ns := copyState(workingState)
 			doMove(ns, possibleMoves[i])
+			//ns.tree = removeNode(workingState.tree, possibleMoves[i].target)
+
+			if gui && len(ns.path) > len(longestPath) {
+				longestPath = ns.path
+				printPath(longestPath)
+				fmt.Printf("pq: %v - %v\n", len(pq), len(ns.path))
+			}
 			if len(ns.collectedKeys) == ns.totalKeys {
 				if gui {
 					printPath(ns.path)
@@ -77,8 +86,21 @@ func findCost(tree map[position.Pos][]move, startingState *state) int {
 	return -1
 }
 
-func calcPrio(ns *state) int {
-	return ns.cost + ns.totalKeys - len(ns.collectedKeys)
+func calcPrio(s *state) int {
+	gn := s.cost
+
+	//if len(s.path) == 0 {
+	//	return gn
+	//}
+	//hg := (s.totalKeys*2 - len(s.path)) * gn / len(s.path)
+
+	hg := s.totalKeys - len(s.collectedKeys)
+
+	//hg := 0
+	//if len(s.path) > 0 {
+	//	hg = int(s.path[len(s.path)-1].val)
+	//}
+	return hg + gn
 }
 
 func removeNode(tree map[position.Pos][]move, remove position.Pos) map[position.Pos][]move {
@@ -226,6 +248,7 @@ type state struct {
 	cost          int
 	visited       []position.Pos
 	path          []move
+	tree          map[position.Pos][]move
 }
 
 func countKeys(m map[position.Pos]rune) int {
@@ -253,6 +276,7 @@ func copyState(s *state) *state {
 		cost:          s.cost,
 		visited:       CopyArray2(s.visited),
 		path:          CopyArray(s.path),
+		tree:          s.tree,
 	}
 	return &res
 }
