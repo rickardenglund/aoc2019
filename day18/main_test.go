@@ -2,6 +2,7 @@ package main
 
 import (
 	"aoc2019/position"
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -44,16 +45,16 @@ const medium = `########################
 func Test_getAvailableMoves(t *testing.T) {
 	m, playerPos := readMap(small)
 	res := []move{
-		{val: 'a', steps: 2, p: position.Pos{X: 7, Y: 1}},
-		{val: 'A', steps: 2, p: position.Pos{X: 3, Y: 1}}}
+		{val: 'a', steps: 2, target: position.Pos{X: 7, Y: 1}},
+		{val: 'A', steps: 2, target: position.Pos{X: 3, Y: 1}}}
 
 	assert.Contains(t, getAvailableMoves(m, pos{playerPos, 0}), res[0])
 	assert.Contains(t, getAvailableMoves(m, pos{playerPos, 0}), res[1])
 
 	m, playerPos = readMap(mediumX)
 	res = []move{
-		{val: 'C', steps: 2, p: position.Pos{X: 9, Y: 1}},
-		{val: 'c', steps: 10, p: position.Pos{X: 21, Y: 1}}}
+		{val: 'C', steps: 2, target: position.Pos{X: 9, Y: 1}},
+		{val: 'c', steps: 10, target: position.Pos{X: 21, Y: 1}}}
 	assert.Contains(t, getAvailableMoves(m, pos{playerPos, 0}), res[0])
 	assert.Contains(t, getAvailableMoves(m, pos{playerPos, 0}), res[1])
 }
@@ -62,33 +63,19 @@ func Test_getTree(t *testing.T) {
 	m, start := readMap(small)
 	tree := toTree(m, start)
 	assert.Equal(t, position.Pos{X: 5, Y: 1}, start)
-	assert.Contains(t, tree[start], move{val: 'a', p: position.Pos{X: 7, Y: 1}, steps: 2})
-	assert.Contains(t, tree[start], move{val: 'A', p: position.Pos{X: 3, Y: 1}, steps: 2})
+	assert.Contains(t, tree[start], move{val: 'a', target: position.Pos{X: 7, Y: 1}, steps: 2})
+	assert.Contains(t, tree[start], move{val: 'A', target: position.Pos{X: 3, Y: 1}, steps: 2})
 
-	assert.Contains(t, tree[position.Pos{X: 3, Y: 1}], move{val: 'b', p: position.Pos{X: 1, Y: 1}, steps: 2})
-	assert.Contains(t, tree[position.Pos{X: 3, Y: 1}], move{val: 'a', p: position.Pos{X: 7, Y: 1}, steps: 4})
+	assert.Contains(t, tree[position.Pos{X: 3, Y: 1}], move{val: 'b', target: position.Pos{X: 1, Y: 1}, steps: 2})
+	assert.Contains(t, tree[position.Pos{X: 3, Y: 1}], move{val: 'a', target: position.Pos{X: 7, Y: 1}, steps: 4})
 }
-
-//func Test_filterMoves(t *testing.T) {
-//	s := []move{}
-//	avMoves := []move{{val: 'a', steps: 2}, {val: 'A', steps: 2}}
-//	assert.Equal(t, []move{{
-//		val:   'a',
-//		steps: 2,
-//	}}, filterMoves(s, avMoves))
-//
-//	s = []move{{
-//		val: 'a',
-//	}}
-//	avMoves = []move{{val: 'b', steps: 2}, {val: 'A', steps: 2}}
-//	assert.Equal(t, []move{{val: 'b', steps: 2}, {val: 'A', steps: 2}}, filterMoves(s, avMoves))
-//}
 
 const small = `#########
 #b.A.@.a#
 #########`
 
 func Test_findCostB(t *testing.T) {
+	gui = true
 	m, playerPos := readMap(small)
 	assert.Equal(t, 8, findCostMap(m, playerPos))
 }
@@ -110,7 +97,7 @@ func Test_find(t *testing.T) {
 		collectedKeys: map[rune]bool{},
 		totalKeys:     1,
 		cost:          0,
-		visited:       nil,
+		//visited:       nil,
 		//path:          nil,
 	}
 	tree := map[position.Pos][]move{
@@ -121,7 +108,6 @@ func Test_find(t *testing.T) {
 }
 
 func Test_findCost2B(t *testing.T) {
-	gui = true
 	m, playerPos := readMap(mini)
 	assert.Equal(t, 10, findCostMap(m, playerPos))
 }
@@ -143,7 +129,7 @@ func Test_findCost4B(t *testing.T) {
 }
 
 const medium3 = `#################
-#i.G..c...e..H.p#
+#i.G..c...e..H.gp#
 ########.########
 #j.A..b...f..D.o#
 ########@########
@@ -184,4 +170,31 @@ func Test_append(t *testing.T) {
 	a[0] = 0
 	assert.NotEqual(t, a[2], b[2])
 	assert.NotEqual(t, a[0], b[0])
+}
+
+const apa = `#######
+#b.a.c#
+#.###.#
+#..d..#
+#e#####
+#######`
+
+func Test_removeNode(t *testing.T) {
+	m, p := readMap(apa)
+	tree := toTree(m, p)
+
+	printTree(tree)
+
+	newTree := removeNode(tree, position.Pos{X: 1, Y: 1})
+	fmt.Printf("########\n")
+	printTree(newTree)
+
+}
+
+func Test_appendMin(t *testing.T) {
+	moves := []move{{val: 'a', steps: 2}}
+	moves = appendMin(moves, move{val: 'a', steps: 1})
+	moves = appendMin(moves, move{val: 'a', steps: 4})
+	printMoves(moves)
+	assert.Equal(t, 1, len(moves))
 }
