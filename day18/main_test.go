@@ -96,7 +96,7 @@ func Test_find(t *testing.T) {
 		collectedKeys: map[rune]bool{},
 		totalKeys:     1,
 		cost:          0,
-		//visited:       nil,
+		//path:       nil,
 		//path:          nil,
 	}
 	tree := []node{

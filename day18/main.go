@@ -39,7 +39,7 @@ func findCostMap(m map[position.Pos]rune, start position.Pos) int {
 		pos:           start,
 		collectedKeys: make(map[rune]bool),
 		totalKeys:     countKeys(m),
-		visited:       make([]position.Pos, 0),
+		path:          make([]position.Pos, 0),
 		//path:          []move{},
 		tree: tree,
 	}
@@ -52,7 +52,13 @@ func findCostMap(m map[position.Pos]rune, start position.Pos) int {
 
 var pq PriorityQueue
 
+type vState struct {
+	pos  position.Pos
+	keys map[rune]bool
+}
+
 func findCost(m map[position.Pos]rune, startingState *state) int {
+	visited := []vState{}
 	longestPath := []position.Pos{}
 	heap.Push(&pq, &Item{
 		value:    startingState,
@@ -65,48 +71,57 @@ func findCost(m map[position.Pos]rune, startingState *state) int {
 		for i := range possibleMoves {
 			ns := copyState(workingState)
 			doMove(ns, possibleMoves[i])
+			visited = append(visited, vState{
+				pos:  ns.pos,
+				keys: CopyMapRune(ns.collectedKeys),
+			})
 			//ns.tree = removeNode(workingState.tree, possibleMoves[i].target)
 
-			if gui && len(ns.visited) > len(longestPath) {
-				longestPath = ns.visited
+			if gui && len(ns.path) > len(longestPath) {
+				longestPath = ns.path
 				printPath(m, longestPath)
-				fmt.Printf("pq: %v - %v\n", len(pq), len(ns.visited))
+				fmt.Printf("pq: %v - %v\n", len(pq), len(ns.path))
 			}
 			if len(ns.collectedKeys) == ns.totalKeys {
 				if gui {
-					printPath(m, ns.visited)
+					printPath(m, ns.path)
 				}
 				return ns.cost
 			}
-			heap.Push(&pq, &Item{
-				value:    ns,
-				priority: calcPrio(m, ns),
-			})
+			if !isVisited(visited, ns) {
+				heap.Push(&pq, &Item{
+					value:    ns,
+					priority: calcPrio(m, ns),
+				})
+			}
 		}
 	}
 	return -1
 }
 
+func isVisited(visited []vState, ns *state) bool {
+	for i := range visited {
+		if visited[i].pos == ns.pos {
+			for k := range ns.collectedKeys {
+				if !visited[i].keys[k] {
+					return false
+				}
+			}
+			return false
+		}
+	}
+	return false
+}
+
 func calcPrio(m map[position.Pos]rune, s *state) int {
 	gn := s.cost
 
-	//if len(s.path) == 0 {
-	//	return gn
-	//}
-	//hg := (s.totalKeys*2 - len(s.path)) * gn / len(s.path)
-
-	//hg := (s.totalKeys - len(s.collectedKeys)) * 5
-
-	//hg := 0
-	//if len(s.path) > 0 {
-	//	hg = int(s.path[len(s.path)-1].val)
-	//}
 	var hg int
 	max := 0
 
 	moves := get(s.tree, s.pos)
 	for i := range moves {
-		if moves[i].steps > max && !contains(s.visited, moves[i].target) {
+		if moves[i].steps > max && !contains(s.path, moves[i].target) {
 			max = moves[i].steps
 		}
 	}
@@ -159,7 +174,7 @@ func appendMin(newMoves []move, newMove move) []move {
 func doMove(s *state, m move) {
 	s.pos = m.target
 	s.cost += m.steps
-	s.visited = add(s.visited, s.pos)
+	s.path = add(s.path, s.pos)
 	if isLower(m.val) {
 		s.collectedKeys[m.val] = true
 	}
@@ -215,7 +230,7 @@ func find(tree []node, s *state, checked []position.Pos, cur position.Pos, dist 
 	moves := get(tree, cur)
 	var alreadyVisited []move
 	for m := range moves {
-		if contains(s.visited, moves[m].target) {
+		if contains(s.path, moves[m].target) {
 			if !contains(checked, moves[m].target) {
 				alreadyVisited = append(alreadyVisited, moves[m])
 			}
@@ -286,9 +301,8 @@ type state struct {
 	collectedKeys map[rune]bool
 	totalKeys     int
 	cost          int
-	visited       []position.Pos
-	//path          []move
-	tree []node
+	path          []position.Pos
+	tree          []node
 }
 
 func countKeys(m map[position.Pos]rune) int {
@@ -314,9 +328,8 @@ func copyState(s *state) *state {
 		collectedKeys: CopyMapRune(s.collectedKeys),
 		totalKeys:     s.totalKeys,
 		cost:          s.cost,
-		visited:       CopyArray2(s.visited),
-		//path:          CopyArray(s.path),
-		tree: s.tree,
+		path:          CopyArray2(s.path),
+		tree:          s.tree,
 	}
 	return &res
 }
