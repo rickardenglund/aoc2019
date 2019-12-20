@@ -279,7 +279,6 @@ func toTree(m map[position.Pos]rune, start position.Pos) []node {
 	}
 
 	return tree
-
 }
 
 type state struct {
