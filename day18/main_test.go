@@ -2,7 +2,6 @@ package main
 
 import (
 	"aoc2019/position"
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -57,11 +56,11 @@ func Test_getTree(t *testing.T) {
 	m, start := readMap(small)
 	tree := toTree(m, start)
 	assert.Equal(t, position.Pos{X: 5, Y: 1}, start)
-	assert.Contains(t, tree[start], move{val: 'a', target: position.Pos{X: 7, Y: 1}, steps: 2})
-	assert.Contains(t, tree[start], move{val: 'A', target: position.Pos{X: 3, Y: 1}, steps: 2})
+	assert.Contains(t, get(tree, start), move{val: 'a', target: position.Pos{X: 7, Y: 1}, steps: 2})
+	assert.Contains(t, get(tree, start), move{val: 'A', target: position.Pos{X: 3, Y: 1}, steps: 2})
 
-	assert.Contains(t, tree[position.Pos{X: 3, Y: 1}], move{val: 'b', target: position.Pos{X: 1, Y: 1}, steps: 2})
-	assert.Contains(t, tree[position.Pos{X: 3, Y: 1}], move{val: 'a', target: position.Pos{X: 7, Y: 1}, steps: 4})
+	assert.Contains(t, get(tree, position.Pos{X: 3, Y: 1}), move{val: 'b', target: position.Pos{X: 1, Y: 1}, steps: 2})
+	assert.Contains(t, get(tree, position.Pos{X: 3, Y: 1}), move{val: 'a', target: position.Pos{X: 7, Y: 1}, steps: 4})
 }
 
 const small = `#########
@@ -100,8 +99,9 @@ func Test_find(t *testing.T) {
 		//visited:       nil,
 		//path:          nil,
 	}
-	tree := map[position.Pos][]move{
-		{X: 1, Y: 1}: {{'a', 2, position.Pos{X: 2, Y: 2}}},
+	tree := []node{
+		{pos: position.Pos{X: 1, Y: 1},
+			moves: []move{{'a', 2, position.Pos{X: 2, Y: 2}}}},
 	}
 	moves := filter(tree, &s)
 	assert.Contains(t, moves, move{'a', 2, position.Pos{X: 2, Y: 2}})
@@ -184,9 +184,9 @@ func Test_removeNode(t *testing.T) {
 
 	printTree(tree)
 
-	newTree := removeNode(tree, position.Pos{X: 1, Y: 1})
-	fmt.Printf("########\n")
-	printTree(newTree)
+	//newTree := removeNode(tree, position.Pos{X: 1, Y: 1})
+	//fmt.Printf("########\n")
+	//printTree(newTree)
 
 }
 
