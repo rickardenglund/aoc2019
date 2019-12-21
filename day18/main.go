@@ -58,8 +58,8 @@ type vState struct {
 }
 
 func findCost(m map[position.Pos]rune, startingState *state) int {
-	visited := []vState{}
-	longestPath := []position.Pos{}
+	var visited []vState
+	var longestPath []position.Pos
 	heap.Push(&pq, &Item{
 		value:    startingState,
 		priority: calcPrio(m, startingState),
@@ -67,15 +67,10 @@ func findCost(m map[position.Pos]rune, startingState *state) int {
 	for len(pq) > 0 {
 		item := heap.Pop(&pq).(*Item)
 		workingState := item.value
-		possibleMoves := filter(workingState.tree, workingState)
+		possibleMoves := filter(workingState)
 		for i := range possibleMoves {
 			ns := copyState(workingState)
 			doMove(ns, possibleMoves[i])
-			visited = append(visited, vState{
-				pos:  ns.pos,
-				keys: CopyMapRune(ns.collectedKeys),
-			})
-			//ns.tree = removeNode(workingState.tree, possibleMoves[i].target)
 
 			if gui && len(ns.path) > len(longestPath) {
 				longestPath = ns.path
@@ -88,10 +83,16 @@ func findCost(m map[position.Pos]rune, startingState *state) int {
 				}
 				return ns.cost
 			}
+			filter(ns)
 			if !isVisited(visited, ns) {
 				heap.Push(&pq, &Item{
 					value:    ns,
 					priority: calcPrio(m, ns),
+				})
+
+				visited = append(visited, vState{
+					pos:  ns.pos,
+					keys: CopyMapRune(ns.collectedKeys),
 				})
 			}
 		}
@@ -107,7 +108,7 @@ func isVisited(visited []vState, ns *state) bool {
 					return false
 				}
 			}
-			return false
+			return true
 		}
 	}
 	return false
@@ -128,32 +129,6 @@ func calcPrio(m map[position.Pos]rune, s *state) int {
 	hg = max * 2
 
 	return hg + gn
-}
-
-func removeNode(tree map[position.Pos][]move, remove position.Pos) map[position.Pos][]move {
-	res := map[position.Pos][]move{}
-
-	for k, moves := range tree {
-		var newMoves []move = make([]move, 0, len(moves))
-		for _, fromI := range moves {
-			if fromI.target == remove {
-				for _, to := range tree[remove] {
-					if to.target != k {
-						newMove := move{
-							to.val,
-							fromI.steps + to.steps,
-							to.target}
-						newMoves = appendMin(newMoves, newMove)
-					}
-				}
-			} else {
-				newMoves = append(newMoves, fromI)
-			}
-		}
-		res[k] = newMoves
-	}
-
-	return res
 }
 
 func appendMin(newMoves []move, newMove move) []move {
@@ -198,7 +173,8 @@ func isUpper(r rune) bool {
 	return r >= 'A' && r <= 'Z'
 }
 
-func filter(tree []node, s *state) []move {
+func filter(s *state) []move {
+	tree := s.tree
 	checked := make([]position.Pos, 0)
 	cur := s.pos
 

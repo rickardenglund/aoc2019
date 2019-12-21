@@ -67,7 +67,7 @@ const small = `#########
 #b.A.@.a#
 #########`
 
-func Test_findCostB(t *testing.T) {
+func Test_findCost(t *testing.T) {
 	gui = true
 	m, playerPos := readMap(small)
 	assert.Equal(t, 8, findCostMap(m, playerPos))
@@ -103,7 +103,8 @@ func Test_find(t *testing.T) {
 		{pos: position.Pos{X: 1, Y: 1},
 			moves: []move{{'a', 2, position.Pos{X: 2, Y: 2}}}},
 	}
-	moves := filter(tree, &s)
+	s.tree = tree
+	moves := filter(&s)
 	assert.Contains(t, moves, move{'a', 2, position.Pos{X: 2, Y: 2}})
 }
 
@@ -183,11 +184,6 @@ func Test_removeNode(t *testing.T) {
 	tree := toTree(m, p)
 
 	printTree(tree)
-
-	//newTree := removeNode(tree, position.Pos{X: 1, Y: 1})
-	//fmt.Printf("########\n")
-	//printTree(newTree)
-
 }
 
 func Test_appendMin(t *testing.T) {
@@ -196,4 +192,19 @@ func Test_appendMin(t *testing.T) {
 	moves = appendMin(moves, move{val: 'a', steps: 4})
 	printMoves(moves)
 	assert.Equal(t, 1, len(moves))
+}
+
+func Test_isVisited(t *testing.T) {
+	visited := []vState{
+		{pos: position.Pos{1, 1}, keys: map[rune]bool{'a': true}},
+		{pos: position.Pos{1, 2}, keys: map[rune]bool{'a': true, 'b': true}},
+	}
+	s := state{
+		pos:           position.Pos{1, 1},
+		collectedKeys: map[rune]bool{'a': true},
+	}
+	assert.True(t, isVisited(visited, &s))
+
+	visited[0].keys['a'] = false
+	assert.False(t, isVisited(visited, &s))
 }

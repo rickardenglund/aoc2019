@@ -232,8 +232,10 @@ func (c *Computer) GetLastOutput() int {
 func (c *Computer) SendLine(s string) {
 	for i := range s {
 		c.Input <- Msg{Data: int(s[i])}
+		fmt.Printf("%c", s[i])
 	}
 	c.Input <- Msg{Data: int('\n')}
+	fmt.Printf("\n")
 }
 
 func ReadMemory(path string) []int {
