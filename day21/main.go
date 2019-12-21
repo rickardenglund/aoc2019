@@ -76,6 +76,7 @@ func part2() interface{} {
 	c.SendLine("NOT C T")
 	c.SendLine("OR T J")
 
+	c.SendLine("OR J T")
 	c.SendLine("AND H T")
 	c.SendLine("OR E T")
 	c.SendLine("AND T J")

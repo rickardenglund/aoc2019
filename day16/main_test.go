@@ -84,11 +84,11 @@ func Test_fftOffset(t *testing.T) {
 	assert.Equal(t, "17617648", toStr(fft100(in, 2)))
 }
 
-func Test_decode(t *testing.T) {
-	input := "03036732577212944063491565474664"
-	res := decode(input)
-	assert.Equal(t, "84462026", res)
-}
+//func Test_decode(t *testing.T) {
+//	input := "03036732577212944063491565474664"
+//	res := decode(input)
+//	assert.Equal(t, "84462026", res)
+//}
 
 //func Test_decodep1(t *testing.T) {
 //

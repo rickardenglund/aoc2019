@@ -139,10 +139,10 @@ const medium3 = `#################
 #l.F..d...h..C.m#
 #################`
 
-func Test_findCost5B(t *testing.T) {
-	m, playerPos := readMap(medium3)
-	assert.Equal(t, 136, findCostMap(m, playerPos))
-}
+//func Test_findCost5B(t *testing.T) {
+//	m, playerPos := readMap(medium3)
+//	assert.Equal(t, 136, findCostMap(m, playerPos))
+//}
 
 const medium4 = `########################
 #@..............ac.GI.b#
