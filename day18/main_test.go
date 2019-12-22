@@ -89,31 +89,40 @@ const mini = `######
 ######c#
 ########`
 
-func Test_find(t *testing.T) {
-	s := state{
-		pos:           position.Pos{X: 1, Y: 1},
-		collectedKeys: map[rune]bool{},
-		totalKeys:     1,
-		cost:          0,
-		//path:       nil,
-		//path:          nil,
-	}
-	tree := []node{
-		{pos: position.Pos{X: 1, Y: 1},
-			moves: []move{{'a', 2, position.Pos{X: 2, Y: 2}}}},
-	}
-	s.tree = tree
-	moves := filter(&s, nil)
-	assert.Contains(t, moves, move{'a', 2, position.Pos{X: 2, Y: 2}})
-}
+//func Test_find(t *testing.T) {
+//	s := state{
+//		pos:           position.Pos{X: 1, Y: 1},
+//		collectedKeys: map[rune]bool{},
+//		totalKeys:     1,
+//		cost:          0,
+//		//path:       nil,
+//		//path:          nil,
+//	}
+//	tree := []node{
+//		{pos: position.Pos{X: 1, Y: 1},
+//			moves: []move{{'a', 2, position.Pos{X: 2, Y: 2}}}},
+//	}
+//	s.tree = tree
+//	moves := filter(&s, nil)
+//	assert.Contains(t, moves, move{'a', 2, position.Pos{X: 2, Y: 2}})
+//}
 
 func Test_findCost2B(t *testing.T) {
-	gui = true
+	//gui = true
 	m, playerPos := readMap(mini)
 	assert.Equal(t, 10, findCostMap(m, playerPos))
 }
 
+const mini4 = `cBa@....b`
+
+func Test_findCost2C(t *testing.T) {
+	//gui = true
+	m, playerPos := readMap(mini4)
+	assert.Equal(t, 13, findCostMap(m, playerPos))
+}
+
 func Test_findCost3B(t *testing.T) {
+	//gui = true
 	m, playerPos := readMap(medium)
 	assert.Equal(t, 86, findCostMap(m, playerPos))
 }
@@ -139,7 +148,6 @@ const medium3 = `#################
 #l.F..d...h..C.m#
 #################`
 
-//
 //func Test_findCost5B(t *testing.T) {
 //	m, playerPos := readMap(medium3)
 //	assert.Equal(t, 136, findCostMap(m, playerPos))
@@ -153,7 +161,7 @@ const medium4 = `########################
 ########################`
 
 func Test_findCost6B(t *testing.T) {
-	gui = true
+	//gui = true
 	m, playerPos := readMap(medium4)
 	assert.Equal(t, 81, findCostMap(m, playerPos))
 }
@@ -180,19 +188,4 @@ func Test_appendMin(t *testing.T) {
 	moves = appendMin(moves, move{val: 'a', steps: 4})
 	printMoves(moves)
 	assert.Equal(t, 1, len(moves))
-}
-
-func Test_isVisited(t *testing.T) {
-	visited := []vState{
-		{pos: position.Pos{X: 1, Y: 1}, keys: map[rune]bool{'a': true}},
-		{pos: position.Pos{X: 1, Y: 2}, keys: map[rune]bool{'a': true, 'b': true}},
-	}
-	s := state{
-		pos:           position.Pos{X: 1, Y: 1},
-		collectedKeys: map[rune]bool{'a': true},
-	}
-	assert.True(t, isVisited(visited, s.collectedKeys, s.pos))
-
-	visited[0].keys['a'] = false
-	assert.False(t, isVisited(visited, s.collectedKeys, s.pos))
 }
