@@ -68,7 +68,9 @@ func fft100(in string, offset int) []int {
 	for i := 0; i < 100; i++ {
 		start := time.Now()
 		signal = fft(signal, offset)
-		fmt.Printf("%v: %v\n", i, time.Since(start))
+		if gui {
+			fmt.Printf("%v: %v\n", i, time.Since(start))
+		}
 	}
 
 	return signal[offset : offset+8]
@@ -103,9 +105,6 @@ func sum(series int, input []int) int {
 var p = [4]int{0, 1, 0, -1}
 
 func getPattern(series, i int) int {
-	if true {
-		return p[i%4]
-	}
 	if series == 0 {
 		return p[(i+1)%4]
 	}
