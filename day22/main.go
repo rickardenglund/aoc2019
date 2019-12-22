@@ -26,98 +26,64 @@ func main() {
 }
 
 func part1() interface{} {
-	input := inputs.GetLine("day22/input.txt")
-	deck := getDeck(10007)
-	execute(deck, input)
-
-	for i := range deck {
-		if deck[i] == 2019 {
-			return i
-		}
-	}
-	return -1
+	inputs := inputs.GetLine("day22/input.txt")
+	res := executeFollow(2019, 10007, inputs)
+	return res
 }
 
+// too high : 89749636864860
 func part2() interface{} {
-	input := inputs.GetLine("day22/input.txt")
-	deck := getDeck(101741582076661)
-	execute(deck, input)
+	times := 101741582076661
+	pos := 2020
+	inputs := inputs.GetLine("day22/input.txt")
+	prev := 0
+	for i := 0; i < times; i++ {
+		pos = executeFollow(pos, 101741582076661, inputs)
 
-	for i := range deck {
-		if deck[i] == 2020 {
-			return i
+		fmt.Printf("diff: %v\n", pos-prev)
+		if i%100_000 == 0 {
+			fmt.Printf("progres: %.10f \n", float64(i)/float64(times))
 		}
 	}
-	return -1
+	return pos
 }
 
-//7350 to high
-func execute(deck []int, instructions string) {
+func executeFollow(pos int, deckLength int, instructions string) int {
 	lines := strings.Split(instructions, "\n")
 	for _, line := range lines {
 		if line == "deal into new stack" {
-			dealIntoNewStack(deck)
+			pos = dealIntoNewStackFollow(pos, deckLength)
 		}
 		if strings.HasPrefix(line, "deal with increment") {
 			parts := strings.Split(line, " ")
 			n, _ := strconv.Atoi(parts[len(parts)-1])
-			dealWithIncrement(deck, n)
+			pos = dealWithIncrementFollow(pos, n, deckLength)
 		}
 		if strings.HasPrefix(line, "cut") {
 			parts := strings.Split(line, " ")
 			n, _ := strconv.Atoi(parts[len(parts)-1])
-			cut(deck, n)
+			pos = cutFollow(pos, n, deckLength)
 		}
 	}
+
+	return pos
 }
 
-func dealWithIncrement(deck []int, inc int) {
-	tmp := make([]int, len(deck))
-	copy(tmp, deck)
-
-	for i := 0; i < len(deck); i++ {
-		deck[i*inc%len(deck)] = tmp[i]
-	}
+func dealIntoNewStackFollow(pos, deckLength int) int {
+	return (deckLength - 1) - pos
 }
 
-func cut(deck []int, n int) {
-	if n == 0 {
-		return
-	}
-
-	if n > 0 {
-		tmp := make([]int, n)
-		copy(tmp, deck[:n])
-		for i := 0; i < len(deck)-n; i++ {
-			deck[i] = deck[i+n]
+func cutFollow(pos, N, decklength int) int {
+	if N > 0 {
+		if pos < N {
+			return decklength - N + pos
 		}
-		for i := range tmp {
-			deck[len(deck)-n+i] = tmp[i]
-		}
-		return
+		return pos - N
 	}
 
-	//negative
-	tmp := make([]int, saint.Abs(n))
-	copy(tmp, deck[len(deck)+n:])
-	copy(deck[-n:], deck[:len(deck)+n])
-	copy(deck, tmp)
+	return (pos + saint.Abs(N)) % decklength
 }
 
-func dealIntoNewStack(deck []int) {
-	var tmp int
-	for i := 0; i < len(deck)/2; i++ {
-		tmp = deck[i]
-		backIndex := len(deck) - 1 - i
-		deck[i] = deck[backIndex]
-		deck[backIndex] = tmp
-	}
-}
-
-func getDeck(size int) []int {
-	deck := make([]int, size)
-	for i := range deck {
-		deck[i] = i
-	}
-	return deck
+func dealWithIncrementFollow(pos, N, deckLength int) int {
+	return (pos * N) % deckLength
 }
