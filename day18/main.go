@@ -29,7 +29,10 @@ func main() {
 // 6640, 6632, 6364, 6362 wrong
 func part1() interface{} {
 	m, pos := readMap(inputs.GetLine("day18/input.txt"))
-	return findCostMap(m, pos)
+	tree := toTree(m, pos)
+	printTree(tree)
+	//return findCostMap(m, pos)
+	return -1
 }
 
 func findCostMap(m map[position.Pos]rune, start position.Pos) int {
@@ -57,7 +60,7 @@ type vState struct {
 }
 
 func findCost(m map[position.Pos]rune, startingState *state) int {
-	//var visited []vState
+	var visited []vState
 	var longestPath []position.Pos
 	heap.Push(&pq, &Item{
 		value:    &stateMove{startingState, move{'@', 0, startingState.pos}},
@@ -67,22 +70,23 @@ func findCost(m map[position.Pos]rune, startingState *state) int {
 		item := heap.Pop(&pq).(*Item)
 		cur := item.value
 		doMove(cur.state, cur.move)
+		visited = append(visited, vState{cur.state.pos, CopyMapRune(cur.state.collectedKeys)})
 
 		if gui && len(cur.state.path) > len(longestPath) {
 			longestPath = cur.state.path
-			//printPath(m, longestPath)
-			//fmt.Printf("pq: %v - %v\n", len(pq), len(ns.path))
+			printPath(m, longestPath)
+			fmt.Printf("pq: %v - %v\n", len(pq), len(cur.state.path))
 		}
 		if len(cur.state.collectedKeys) == cur.state.totalKeys {
 			if gui {
+				fmt.Printf("result: ")
 				printPath(m, cur.state.path)
 			}
 			return cur.state.cost
 		}
 
-		possibleMoves := filter(cur.state)
+		possibleMoves := filter(cur.state, visited)
 		for i := range possibleMoves {
-			//if !isVisited(visited, ns) {
 			heap.Push(&pq, &Item{
 				value:    &stateMove{copyState(cur.state), possibleMoves[i]},
 				priority: calcPriority(m, cur.state),
@@ -98,10 +102,10 @@ func findCost(m map[position.Pos]rune, startingState *state) int {
 	return -1
 }
 
-func isVisited(visited []vState, ns *state) bool {
+func isVisited(visited []vState, collectedKeys map[rune]bool, p position.Pos) bool {
 	for i := range visited {
-		if visited[i].pos == ns.pos {
-			for k := range ns.collectedKeys {
+		if visited[i].pos == p {
+			for k := range collectedKeys {
 				if !visited[i].keys[k] {
 					return false
 				}
@@ -112,21 +116,21 @@ func isVisited(visited []vState, ns *state) bool {
 	return false
 }
 
-//nolint:unused (unparam)
+//nolint
 func calcPriority(m map[position.Pos]rune, s *state) int {
 	gn := s.cost
 
 	var hg int
-	max := 0
-
-	moves := get(s.tree, s.pos)
-	for i := range moves {
-		if moves[i].steps > max && !contains(s.path, moves[i].target) {
-			max = moves[i].steps
-		}
-	}
+	//max := 0
+	//
+	//moves := get(s.tree, s.pos)
+	//for i := range moves {
+	//	if moves[i].steps > max && !contains(s.path, moves[i].target) {
+	//		max = moves[i].steps
+	//	}
+	//}
 	//hg = max
-	hg = 0
+	hg = s.totalKeys - len(s.collectedKeys)
 
 	return hg + gn
 }
@@ -153,7 +157,6 @@ func doMove(s *state, m move) {
 	if isLower(m.val) {
 		s.collectedKeys[m.val] = true
 	}
-	//s.path = append(s.path, m)
 }
 
 func add(visited []position.Pos, p position.Pos) []position.Pos {
@@ -173,12 +176,20 @@ func isUpper(r rune) bool {
 	return r >= 'A' && r <= 'Z'
 }
 
-func filter(s *state) []move {
+func filter(s *state, visited []vState) []move {
 	tree := s.tree
 	checked := make([]position.Pos, 0)
 	cur := s.pos
 
-	return find(tree, s, checked, cur, 0)
+	moves := find(tree, s, checked, cur, 0)
+
+	//var res []move
+	//for i := range moves {
+	//	if !isVisited(visited, s.collectedKeys, moves[i].target) {
+	//		res = append(res, moves[i])
+	//	}
+	//}
+	return moves
 }
 
 func getI(tree []node, p position.Pos) int {

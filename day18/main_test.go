@@ -83,6 +83,17 @@ func Test_findCost22B(t *testing.T) {
 	assert.Equal(t, 7, findCostMap(m, playerPos))
 }
 
+const mini3 = `######
+#a..@.b#
+######A#
+######.#
+########`
+
+func Test_findCost22B(t *testing.T) {
+	m, playerPos := readMap(mini2)
+	assert.Equal(t, 7, findCostMap(m, playerPos))
+}
+
 const mini = `######
 #a..@.b#
 ######A#
@@ -103,11 +114,12 @@ func Test_find(t *testing.T) {
 			moves: []move{{'a', 2, position.Pos{X: 2, Y: 2}}}},
 	}
 	s.tree = tree
-	moves := filter(&s)
+	moves := filter(&s, nil)
 	assert.Contains(t, moves, move{'a', 2, position.Pos{X: 2, Y: 2}})
 }
 
 func Test_findCost2B(t *testing.T) {
+	gui = true
 	m, playerPos := readMap(mini)
 	assert.Equal(t, 10, findCostMap(m, playerPos))
 }
@@ -138,10 +150,10 @@ const medium3 = `#################
 #l.F..d...h..C.m#
 #################`
 
-//func Test_findCost5B(t *testing.T) {
-//	m, playerPos := readMap(medium3)
-//	assert.Equal(t, 136, findCostMap(m, playerPos))
-//}
+func Test_findCost5B(t *testing.T) {
+	m, playerPos := readMap(medium3)
+	assert.Equal(t, 136, findCostMap(m, playerPos))
+}
 
 const medium4 = `########################
 #@..............ac.GI.b#
@@ -151,6 +163,7 @@ const medium4 = `########################
 ########################`
 
 func Test_findCost6B(t *testing.T) {
+	gui = true
 	m, playerPos := readMap(medium4)
 	assert.Equal(t, 81, findCostMap(m, playerPos))
 }
@@ -188,8 +201,8 @@ func Test_isVisited(t *testing.T) {
 		pos:           position.Pos{X: 1, Y: 1},
 		collectedKeys: map[rune]bool{'a': true},
 	}
-	assert.True(t, isVisited(visited, &s))
+	assert.True(t, isVisited(visited, s.collectedKeys, s.pos))
 
 	visited[0].keys['a'] = false
-	assert.False(t, isVisited(visited, &s))
+	assert.False(t, isVisited(visited, s.collectedKeys, s.pos))
 }
