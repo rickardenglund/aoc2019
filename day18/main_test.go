@@ -68,7 +68,6 @@ const small = `#########
 #########`
 
 func Test_findCost(t *testing.T) {
-	gui = true
 	m, playerPos := readMap(small)
 	assert.Equal(t, 8, findCostMap(m, playerPos))
 }
@@ -172,20 +171,6 @@ func Test_append(t *testing.T) {
 	assert.NotEqual(t, a[0], b[0])
 }
 
-const apa = `#######
-#b.a.c#
-#.###.#
-#..d..#
-#e#####
-#######`
-
-func Test_removeNode(t *testing.T) {
-	m, p := readMap(apa)
-	tree := toTree(m, p)
-
-	printTree(tree)
-}
-
 func Test_appendMin(t *testing.T) {
 	moves := []move{{val: 'a', steps: 2}}
 	moves = appendMin(moves, move{val: 'a', steps: 1})
@@ -196,11 +181,11 @@ func Test_appendMin(t *testing.T) {
 
 func Test_isVisited(t *testing.T) {
 	visited := []vState{
-		{pos: position.Pos{1, 1}, keys: map[rune]bool{'a': true}},
-		{pos: position.Pos{1, 2}, keys: map[rune]bool{'a': true, 'b': true}},
+		{pos: position.Pos{X: 1, Y: 1}, keys: map[rune]bool{'a': true}},
+		{pos: position.Pos{X: 1, Y: 2}, keys: map[rune]bool{'a': true, 'b': true}},
 	}
 	s := state{
-		pos:           position.Pos{1, 1},
+		pos:           position.Pos{X: 1, Y: 1},
 		collectedKeys: map[rune]bool{'a': true},
 	}
 	assert.True(t, isVisited(visited, &s))

@@ -40,8 +40,7 @@ func findCostMap(m map[position.Pos]rune, start position.Pos) int {
 		collectedKeys: make(map[rune]bool),
 		totalKeys:     countKeys(m),
 		path:          make([]position.Pos, 0),
-		//path:          []move{},
-		tree: tree,
+		tree:          tree,
 	}
 	pq = make(PriorityQueue, 0)
 	heap.Init(&pq)
@@ -58,43 +57,42 @@ type vState struct {
 }
 
 func findCost(m map[position.Pos]rune, startingState *state) int {
-	var visited []vState
+	//var visited []vState
 	var longestPath []position.Pos
 	heap.Push(&pq, &Item{
-		value:    startingState,
-		priority: calcPrio(m, startingState),
+		value:    &stateMove{startingState, move{'@', 0, startingState.pos}},
+		priority: calcPriority(m, startingState),
 	})
 	for len(pq) > 0 {
 		item := heap.Pop(&pq).(*Item)
-		workingState := item.value
-		possibleMoves := filter(workingState)
+		cur := item.value
+		doMove(cur.state, cur.move)
+
+		if gui && len(cur.state.path) > len(longestPath) {
+			longestPath = cur.state.path
+			//printPath(m, longestPath)
+			//fmt.Printf("pq: %v - %v\n", len(pq), len(ns.path))
+		}
+		if len(cur.state.collectedKeys) == cur.state.totalKeys {
+			if gui {
+				printPath(m, cur.state.path)
+			}
+			return cur.state.cost
+		}
+
+		possibleMoves := filter(cur.state)
 		for i := range possibleMoves {
-			ns := copyState(workingState)
-			doMove(ns, possibleMoves[i])
+			//if !isVisited(visited, ns) {
+			heap.Push(&pq, &Item{
+				value:    &stateMove{copyState(cur.state), possibleMoves[i]},
+				priority: calcPriority(m, cur.state),
+			})
 
-			if gui && len(ns.path) > len(longestPath) {
-				longestPath = ns.path
-				printPath(m, longestPath)
-				fmt.Printf("pq: %v - %v\n", len(pq), len(ns.path))
-			}
-			if len(ns.collectedKeys) == ns.totalKeys {
-				if gui {
-					printPath(m, ns.path)
-				}
-				return ns.cost
-			}
-			filter(ns)
-			if !isVisited(visited, ns) {
-				heap.Push(&pq, &Item{
-					value:    ns,
-					priority: calcPrio(m, ns),
-				})
-
-				visited = append(visited, vState{
-					pos:  ns.pos,
-					keys: CopyMapRune(ns.collectedKeys),
-				})
-			}
+			//visited = append(visited, vState{
+			//	pos:  ns.pos,
+			//	keys: CopyMapRune(ns.collectedKeys),
+			//})
+			//}
 		}
 	}
 	return -1
@@ -114,7 +112,8 @@ func isVisited(visited []vState, ns *state) bool {
 	return false
 }
 
-func calcPrio(m map[position.Pos]rune, s *state) int {
+//nolint:unused (unparam)
+func calcPriority(m map[position.Pos]rune, s *state) int {
 	gn := s.cost
 
 	var hg int
@@ -126,7 +125,8 @@ func calcPrio(m map[position.Pos]rune, s *state) int {
 			max = moves[i].steps
 		}
 	}
-	hg = max * 2
+	//hg = max
+	hg = 0
 
 	return hg + gn
 }
@@ -316,6 +316,7 @@ func CopyArray2(visited []position.Pos) []position.Pos {
 	return res
 }
 
+//nolint
 func CopyArray(path []move) []move {
 	res := make([]move, len(path))
 	copy(res, path)
@@ -329,6 +330,8 @@ func CopyMapRune(a map[rune]bool) map[rune]bool {
 	}
 	return res
 }
+
+//nolint
 func CopyMap(a map[position.Pos]bool) map[position.Pos]bool {
 	res := map[position.Pos]bool{}
 	for k, v := range a {
@@ -432,6 +435,8 @@ func isOk(m map[position.Pos]rune, visited map[position.Pos]bool, p position.Pos
 func part2() int {
 	return -1
 }
+
+//nolint
 func printTree(tree []node) {
 	fmt.Printf("#######\n")
 	for i := range tree {
@@ -447,45 +452,6 @@ func printMoves(v []move) {
 		fmt.Printf("(%c_%v:%v) ", v[i].val, v[i].target, v[i].steps)
 	}
 	fmt.Printf("\n")
-}
-
-// An Item is something we manage in a priority queue.
-type Item struct {
-	value    *state // The value of the item; arbitrary.
-	priority int    // The priority of the item in the queue.
-	// The index is needed by update and is maintained by the heap.Interface methods.
-	index int // The index of the item in the heap.
-}
-
-// A PriorityQueue implements heap.Interface and holds Items.
-type PriorityQueue []*Item
-
-func (pq PriorityQueue) Len() int { return len(pq) }
-
-func (pq PriorityQueue) Less(i, j int) bool {
-	return pq[i].priority < pq[j].priority
-}
-
-func (pq PriorityQueue) Swap(i, j int) {
-	pq[i], pq[j] = pq[j], pq[i]
-	pq[i].index = i
-	pq[j].index = j
-}
-func (pq *PriorityQueue) Push(x interface{}) {
-	n := len(*pq)
-	item := x.(*Item)
-	item.index = n
-	*pq = append(*pq, item)
-}
-
-func (pq *PriorityQueue) Pop() interface{} {
-	old := *pq
-	n := len(old)
-	item := old[n-1]
-	old[n-1] = nil  // avoid memory leak
-	item.index = -1 // for safety
-	*pq = old[0 : n-1]
-	return item
 }
 
 //// update modifies the priority and value of an Item in the queue.

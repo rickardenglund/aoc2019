@@ -208,8 +208,7 @@ func NewComputerWithName(name string, mem []int) Computer {
 		Mem:         memCopy,
 		Input:       make(chan Msg),
 		HaltChannel: make(chan bool, 1),
-		//Output: make(chan Msg),
-		name: name,
+		name:        name,
 	}
 }
 
