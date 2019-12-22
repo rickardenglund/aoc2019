@@ -83,17 +83,6 @@ func Test_findCost22B(t *testing.T) {
 	assert.Equal(t, 7, findCostMap(m, playerPos))
 }
 
-const mini3 = `######
-#a..@.b#
-######A#
-######.#
-########`
-
-func Test_findCost22B(t *testing.T) {
-	m, playerPos := readMap(mini2)
-	assert.Equal(t, 7, findCostMap(m, playerPos))
-}
-
 const mini = `######
 #a..@.b#
 ######A#
@@ -150,10 +139,11 @@ const medium3 = `#################
 #l.F..d...h..C.m#
 #################`
 
-func Test_findCost5B(t *testing.T) {
-	m, playerPos := readMap(medium3)
-	assert.Equal(t, 136, findCostMap(m, playerPos))
-}
+//
+//func Test_findCost5B(t *testing.T) {
+//	m, playerPos := readMap(medium3)
+//	assert.Equal(t, 136, findCostMap(m, playerPos))
+//}
 
 const medium4 = `########################
 #@..............ac.GI.b#
