@@ -51,14 +51,14 @@ func findCostMap(m map[position.Pos]rune, start position.Pos) int {
 		path: []rune{},
 	}
 	totalKeys := countKeys(m)
-	res := findCost(m, tree, startState, totalKeys)
+	res := findCost(tree, startState, totalKeys)
 	longestPath = nil
 	return res
 }
 
 var longestPath []rune
 
-func findCost(m map[position.Pos]rune, tree []node, startState vState, totalKeys int) int {
+func findCost(tree []node, startState vState, totalKeys int) int {
 	pq := make(PriorityQueue, 0)
 	var visited = make(map[position.Pos][]*vState)
 	heap.Init(&pq)
@@ -156,6 +156,7 @@ func allOrMore(as []rune, bs []rune) bool {
 	return true
 }
 
+//nolint
 func printState(s *vState) {
 	fmt.Printf("%c: c=%v - ", s.name, s.cost)
 	printKeys(s.keys)
@@ -466,6 +467,7 @@ func printTree(tree []node, m map[position.Pos]rune) {
 	fmt.Printf("#######\n")
 }
 
+//nolint
 func printMoves(v []move) {
 	for i := range v {
 		fmt.Printf("(%c_%v:%v) ", v[i].val, v[i].target, v[i].steps)
@@ -473,6 +475,7 @@ func printMoves(v []move) {
 	fmt.Printf("\n")
 }
 
+//nolint
 func printKeys(keys []rune) {
 	for k := range keys {
 		fmt.Printf("%c, ", keys[k])
