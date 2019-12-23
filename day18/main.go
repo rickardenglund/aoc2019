@@ -7,6 +7,8 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math"
+	"sort"
 	"time"
 	"unicode"
 )
@@ -30,9 +32,11 @@ func main() {
 // 6640, 6632, 6364, 6362 wrong
 func part1() interface{} {
 	m, pos := readMap(inputs.GetLine("day18/input.txt"))
-	tree := toTree(m, pos)
-	printTree(tree, m)
-	//return findCostMap(m, pos)
+	return findCostMap(m, pos)
+}
+
+func part2() int {
+
 	return -1
 }
 
@@ -41,19 +45,22 @@ func findCostMap(m map[position.Pos]rune, start position.Pos) int {
 
 	startState := vState{
 		pos:  start,
-		keys: make(map[rune]bool),
+		keys: nil,
 		cost: 0,
 		name: m[start],
 		path: []rune{},
 	}
 	totalKeys := countKeys(m)
 	res := findCost(m, tree, startState, totalKeys)
+	longestPath = nil
 	return res
 }
 
+var longestPath []rune
+
 func findCost(m map[position.Pos]rune, tree []node, startState vState, totalKeys int) int {
 	pq := make(PriorityQueue, 0)
-	visited := []*vState{}
+	var visited = make(map[position.Pos][]*vState)
 	heap.Init(&pq)
 	heap.Push(&pq, &Item{
 		value:    &startState,
@@ -67,17 +74,21 @@ func findCost(m map[position.Pos]rune, tree []node, startState vState, totalKeys
 			return s.cost
 		}
 		if gui {
-			printState(s)
+			if len(s.keys) > len(longestPath) {
+				longestPath = CopyRunes(s.keys)
+				fmt.Printf("pq: %v, visited: %v __ ", len(pq), len(visited))
+				printRunePath(longestPath)
+			}
 		}
-		visited = append(visited, s)
+		visited = addToVisited(visited, s)
 
 		possibleMoves := getMoves(tree, s)
 		for i := range possibleMoves {
 			newState := createState(s, possibleMoves[i])
-			if !hasVisited(newState, visited) {
+			if shouldVisit(newState, visited) {
 				heap.Push(&pq, &Item{
 					value:    newState,
-					priority: newState.cost,
+					priority: calcPriority(tree, newState, totalKeys),
 				})
 			}
 		}
@@ -85,6 +96,64 @@ func findCost(m map[position.Pos]rune, tree []node, startState vState, totalKeys
 	}
 
 	return -1
+}
+
+func printRunePath(path []rune) {
+	fmt.Printf("path: ")
+	for i := range path {
+		fmt.Printf("%c, ", path[i])
+	}
+	fmt.Printf("\n")
+
+}
+
+func shouldVisit(state *vState, visited map[position.Pos][]*vState) bool {
+	list, ok := visited[state.pos]
+	if ok {
+		for i := range list {
+			if isBetterVersion(list[i], state) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func addToVisited(visited map[position.Pos][]*vState, s *vState) map[position.Pos][]*vState {
+	listOfPos, ok := visited[s.pos]
+	if ok {
+		for i := range listOfPos {
+			if isBetterVersion(s, listOfPos[i]) {
+				listOfPos[i] = s
+				return visited
+			}
+		}
+	}
+	visited[s.pos] = append(visited[s.pos], s)
+	return visited
+}
+
+func isBetterVersion(a *vState, b *vState) bool {
+	if a.pos == b.pos && allOrMore(a.keys, b.keys) {
+		if a.cost <= b.cost {
+			return true
+		}
+	}
+	return false
+
+}
+
+func allOrMore(as []rune, bs []rune) bool {
+	if len(as) >= len(bs) {
+		for i := range bs {
+			if bs[i] != as[i] {
+				return false
+			}
+		}
+	} else {
+		return false
+	}
+	return true
 }
 
 func printState(s *vState) {
@@ -98,41 +167,38 @@ func printState(s *vState) {
 	fmt.Printf("]\n\n")
 }
 
-func hasVisited(s *vState, visited []*vState) bool {
-LOOP:
-	for i := range visited {
-		if s.pos == visited[i].pos {
-
-			if len(s.keys) != len(visited[i].keys) {
-				continue
-			}
-			for k := range s.keys {
-				if !visited[i].keys[k] {
-					continue LOOP
-				}
-			}
-			return true
-		}
-
-	}
-	return false
-}
-
 func createState(s *vState, m move) *vState {
 	newState := vState{
 		pos:  m.target,
-		keys: CopyMapRune(s.keys),
+		keys: CopyRunes(s.keys), // TODO: maybe optimize
 		cost: s.cost + m.steps,
 		name: m.val,
-		path: CopyRunes(s.path, m.val),
+		path: CopyRunesAppend(s.path, m.val),
 	}
 	if isLower(m.val) {
-		newState.keys[m.val] = true
+		newState.keys = addKey(newState.keys, m.val)
 	}
 	return &newState
 }
 
-func CopyRunes(path []rune, val rune) []rune {
+func addKey(keys []rune, val rune) []rune {
+	for i := range keys {
+		if keys[i] == val {
+			return keys
+		}
+	}
+
+	keys = append(keys, val)
+	sort.Slice(keys, func(a, b int) bool { return keys[a] < keys[b] })
+	return keys
+}
+
+func CopyRunes(path []rune) []rune {
+	res := make([]rune, len(path))
+	copy(res, path)
+	return res
+}
+func CopyRunesAppend(path []rune, val rune) []rune {
 	res := make([]rune, len(path)+1)
 	copy(res, path)
 	res[len(path)] = val
@@ -143,7 +209,7 @@ func getMoves(tree []node, s *vState) []move {
 	moves := get(tree, s.pos)
 	var res []move
 	for i := range moves {
-		if isLower(moves[i].val) || s.keys[moves[i].val+32] {
+		if isLower(moves[i].val) || canUnlock(s.keys, moves[i].val) {
 			res = append(res, moves[i])
 		}
 	}
@@ -151,72 +217,56 @@ func getMoves(tree []node, s *vState) []move {
 	return res
 }
 
+func canUnlock(keys []rune, val rune) bool {
+	for i := range keys {
+		if keys[i] == val+32 {
+			return true
+		}
+	}
+	return false
+}
+
 type vState struct {
 	pos  position.Pos
-	keys map[rune]bool
+	keys []rune
 	cost int
 	name rune
 	path []rune
 }
 
 //nolint
-func calcPriority(m map[position.Pos]rune, s *state) int {
+func calcPriority(tree []node, s *vState, totalKeys int) int {
 	gn := s.cost
 
-	var hg int
-	//max := 0
-	//
-	//moves := get(s.tree, s.pos)
-	//for i := range moves {
-	//	if moves[i].steps > max && !contains(s.path, moves[i].target) {
-	//		max = moves[i].steps
-	//	}
-	//}
-	//hg = max
-	hg = s.totalKeys - len(s.collectedKeys)
-
-	return hg + gn
-}
-
-func appendMin(newMoves []move, newMove move) []move {
-	for i := range newMoves {
-		if newMoves[i].val == newMove.val {
-			if newMoves[i].steps > newMove.steps {
-				newMoves[i] = newMove
-				return newMoves
-			} else {
-				return newMoves
+	moves := get(tree, s.pos)
+	closestKey := math.MaxInt32
+	found := false
+	for i := range moves {
+		if isLower(moves[i].val) && !containsRune(s.keys, moves[i].val) {
+			if moves[i].steps < closestKey {
+				closestKey = moves[i].steps
+				found = true
 			}
 		}
 	}
-	newMoves = append(newMoves, newMove)
-	return newMoves
-}
-
-func doMove(s *state, m move) {
-	s.pos = m.target
-	s.cost += m.steps
-	s.path = add(s.path, s.pos)
-	if isLower(m.val) {
-		s.collectedKeys[m.val] = true
+	if !found {
+		closestKey = 0
 	}
+	hg := closestKey
+	return hg + gn
 }
 
-func add(visited []position.Pos, p position.Pos) []position.Pos {
-	for i := range visited {
-		if visited[i] == p {
-			return visited
+func containsRune(keys []rune, val rune) bool {
+	for i := range keys {
+		if keys[i] == val {
+			return true
 		}
 	}
-
-	return append(visited, p)
+	return false
 }
 
 func isLower(r rune) bool {
 	return r >= 'a' && r <= 'z'
-}
-func isUpper(r rune) bool {
-	return r >= 'A' && r <= 'Z'
 }
 
 func getI(tree []node, p position.Pos) int {
@@ -237,49 +287,6 @@ func get(tree []node, p position.Pos) []move {
 	}
 	log.Fatalln("Not found")
 	return nil
-}
-func find(tree []node, s *state, checked []position.Pos, cur position.Pos, dist int) []move {
-	var res []move
-	checked = add(checked, cur)
-	moves := get(tree, cur)
-	var alreadyVisited []move
-	for m := range moves {
-		if contains(s.path, moves[m].target) {
-			if !contains(checked, moves[m].target) {
-				alreadyVisited = append(alreadyVisited, moves[m])
-			}
-		} else if isUpper(moves[m].val) {
-			if s.collectedKeys[moves[m].val+32] {
-				res = append(res, addDist(moves[m], dist))
-			}
-		} else {
-			res = append(res, addDist(moves[m], dist))
-		}
-
-		checked = add(checked, moves[m].target)
-	}
-
-	for i := range alreadyVisited {
-		res = append(res, find(tree, s, checked, alreadyVisited[i].target, dist+alreadyVisited[i].steps)...)
-	}
-	return res
-}
-
-func contains(visited []position.Pos, target position.Pos) bool {
-	for i := range visited {
-		if visited[i] == target {
-			return true
-		}
-	}
-	return false
-}
-
-func addDist(m move, dist int) move {
-	return move{
-		val:    m.val,
-		steps:  m.steps + dist,
-		target: m.target,
-	}
 }
 
 type node struct {
@@ -310,15 +317,6 @@ func toTree(m map[position.Pos]rune, start position.Pos) []node {
 	return tree
 }
 
-type state struct {
-	pos           position.Pos
-	collectedKeys map[rune]bool
-	totalKeys     int
-	cost          int
-	path          []position.Pos
-	tree          []node
-}
-
 func countKeys(m map[position.Pos]rune) int {
 	sum := 0
 	for _, v := range m {
@@ -329,6 +327,7 @@ func countKeys(m map[position.Pos]rune) int {
 	return sum
 }
 
+//nolint
 func printPath(m map[position.Pos]rune, path []position.Pos) {
 	for i := range path {
 		fmt.Printf("%c, ", m[path[i]])
@@ -336,36 +335,10 @@ func printPath(m map[position.Pos]rune, path []position.Pos) {
 	fmt.Printf("\n")
 }
 
-func copyState(s *state) *state {
-	res := state{
-		pos:           s.pos,
-		collectedKeys: CopyMapRune(s.collectedKeys),
-		totalKeys:     s.totalKeys,
-		cost:          s.cost,
-		path:          CopyArray2(s.path),
-		tree:          s.tree,
-	}
-	return &res
-}
-
-func CopyArray2(visited []position.Pos) []position.Pos {
-	res := make([]position.Pos, len(visited))
-	copy(res, visited)
-	return res
-}
-
 //nolint
 func CopyArray(path []move) []move {
 	res := make([]move, len(path))
 	copy(res, path)
-	return res
-}
-
-func CopyMapRune(a map[rune]bool) map[rune]bool {
-	res := map[rune]bool{}
-	for k, v := range a {
-		res[k] = v
-	}
 	return res
 }
 
@@ -470,10 +443,6 @@ func isOk(m map[position.Pos]rune, visited map[position.Pos]bool, p position.Pos
 	return ok && v != '#' && !visited[p]
 }
 
-func part2() int {
-	return -1
-}
-
 //nolint
 func printTree(tree []node, m map[position.Pos]rune) {
 	fmt.Printf("#######\n")
@@ -504,15 +473,8 @@ func printMoves(v []move) {
 	fmt.Printf("\n")
 }
 
-func printKeys(keys map[rune]bool) {
+func printKeys(keys []rune) {
 	for k := range keys {
-		fmt.Printf("%c, ", k)
+		fmt.Printf("%c, ", keys[k])
 	}
 }
-
-//// update modifies the priority and value of an Item in the queue.
-//func (pq *PriorityQueue) update(item *Item, value *state, priority int) {
-//	item.value = value
-//	item.priority = priority
-//	heap.Fix(pq, item.index)
-//}

@@ -68,6 +68,7 @@ const small = `#########
 #########`
 
 func Test_findCost(t *testing.T) {
+	gui = true
 	m, playerPos := readMap(small)
 	assert.Equal(t, 8, findCostMap(m, playerPos))
 }
@@ -122,7 +123,7 @@ func Test_findCost2C(t *testing.T) {
 }
 
 func Test_findCost3B(t *testing.T) {
-	//gui = true
+	gui = true
 	m, playerPos := readMap(medium)
 	assert.Equal(t, 86, findCostMap(m, playerPos))
 }
@@ -134,6 +135,7 @@ const medium2 = `########################
 ########################`
 
 func Test_findCost4B(t *testing.T) {
+	gui = true
 	m, playerPos := readMap(medium2)
 	assert.Equal(t, 132, findCostMap(m, playerPos))
 }
@@ -148,7 +150,9 @@ const medium3 = `#################
 #l.F..d...h..C.m#
 #################`
 
+//
 //func Test_findCost5B(t *testing.T) {
+//	//gui = true
 //	m, playerPos := readMap(medium3)
 //	assert.Equal(t, 136, findCostMap(m, playerPos))
 //}
@@ -166,26 +170,20 @@ func Test_findCost6B(t *testing.T) {
 	assert.Equal(t, 81, findCostMap(m, playerPos))
 }
 
-func Test_copyState(t *testing.T) {
-	a := state{}
-	b := a
-	a.pos = position.Pos{X: 1, Y: 2}
-	assert.NotEqual(t, a, b)
-}
-func Test_append(t *testing.T) {
-	a := []int{1, 2, 3}
-	b := make([]int, len(a)+1)
-	copy(b, a)
-	b = append(b[:2], 4)
-	a[0] = 0
-	assert.NotEqual(t, a[2], b[2])
-	assert.NotEqual(t, a[0], b[0])
-}
+func Test_allOrMore(t *testing.T) {
+	as := []rune{'a', 'b'}
+	bs := []rune{'a', 'b'}
+	assert.True(t, allOrMore(as, bs))
 
-func Test_appendMin(t *testing.T) {
-	moves := []move{{val: 'a', steps: 2}}
-	moves = appendMin(moves, move{val: 'a', steps: 1})
-	moves = appendMin(moves, move{val: 'a', steps: 4})
-	printMoves(moves)
-	assert.Equal(t, 1, len(moves))
+	as = []rune{'a', 'b', 'c'}
+	bs = []rune{'a', 'b'}
+	assert.True(t, allOrMore(as, bs))
+
+	as = []rune{'a', 'c'}
+	bs = []rune{'a', 'b'}
+	assert.False(t, allOrMore(as, bs))
+
+	as = []rune{'a'}
+	bs = []rune{'a', 'b'}
+	assert.False(t, allOrMore(as, bs))
 }

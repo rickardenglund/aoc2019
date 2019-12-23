@@ -1,10 +1,5 @@
 package main
 
-type stateMove struct {
-	state *state
-	move  move
-}
-
 // An Item is something we manage in a priority queue.
 type Item struct {
 	value    *vState // The value of the item; arbitrary.
